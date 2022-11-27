@@ -12,7 +12,7 @@ import torch.optim as optim
 import torch.utils.data
 from torch.autograd import Variable
 
-import utils
+import tools
 import visualize
 from nms.nms_wrapper import nms
 from roialign.roi_align.crop_and_resize import CropAndResizeFunction
@@ -602,7 +602,7 @@ def detection_target_layer(proposals, gt_class_ids, gt_boxes, gt_masks, config):
         roi_gt_class_ids = gt_class_ids[roi_gt_box_assignment.data]
 
         # Compute bbox refinement for positive ROIs
-        deltas = Variable(utils.box_refinement(positive_rois.data, roi_gt_boxes.data), requires_grad=False)
+        deltas = Variable(tools.box_refinement(positive_rois.data, roi_gt_boxes.data), requires_grad=False)
         std_dev = Variable(torch.from_numpy(config.BBOX_STD_DEV).float(), requires_grad=False)
         if config.GPU_COUNT:
             std_dev = std_dev.cuda()
@@ -824,7 +824,7 @@ def detection_layer(config, rois, mrcnn_class, mrcnn_bbox, image_meta):
     # Currently only supports batchsize 1
     rois = rois.squeeze(0)
 
-    _, _, window, _ = utils.parse_image_meta(image_meta)
+    _, _, window, _ = tools.parse_image_meta(image_meta)
     window = window[0]
     detections = refine_detections(rois, mrcnn_class, mrcnn_bbox, window, config)
 
@@ -985,7 +985,7 @@ class Mask(nn.Module):
         alpha = 0.25
         gamma = 2
 
-        t = utils.one_hot_embedding(y.data.cpu(), 1+self.num_classes) 
+        t = tools.one_hot_embedding(y.data.cpu(), 1+self.num_classes) 
         t = t[:,1:]  
         t = Variable(t).cuda() 
 
@@ -1005,7 +1005,7 @@ class Mask(nn.Module):
         '''
         alpha = 0.25
 
-        t = utils.one_hot_embedding(y.data.cpu(), 1+self.num_classes)
+        t = tools.one_hot_embedding(y.data.cpu(), 1+self.num_classes)
         t = t[:,1:]
         t = Variable(t).cuda()
 
@@ -1183,7 +1183,7 @@ def compute_mrcnn_mask_loss(target_masks, target_class_ids, pred_masks):
 
 def compute_losses(rpn_match, rpn_bbox, rpn_class_logits, rpn_pred_bbox, target_class_ids, mrcnn_class_logits, target_deltas, mrcnn_bbox, target_mask, mrcnn_mask):
 
-    rpn_class_loss = utils.compute_rpn_class_loss(rpn_match, rpn_class_logits)
+    rpn_class_loss = tools.compute_rpn_class_loss(rpn_match, rpn_class_logits)
     rpn_bbox_loss = compute_rpn_bbox_loss(rpn_bbox, rpn_match, rpn_pred_bbox)
     mrcnn_class_loss = compute_mrcnn_class_loss(target_class_ids, mrcnn_class_logits)
     mrcnn_bbox_loss = compute_mrcnn_bbox_loss(target_deltas, target_class_ids, mrcnn_bbox)
@@ -1220,12 +1220,12 @@ def load_image_gt(dataset, config, image_id, augment=False,
     image = dataset.load_image(image_id)
     mask, class_ids = dataset.load_mask(image_id)
     shape = image.shape
-    image, window, scale, padding = utils.resize_image(
+    image, window, scale, padding = tools.resize_image(
         image,
         min_dim=config.IMAGE_MIN_DIM,
         max_dim=config.IMAGE_MAX_DIM,
         padding=config.IMAGE_PADDING)
-    mask = utils.resize_mask(mask, scale, padding)
+    mask = tools.resize_mask(mask, scale, padding)
 
     # Random horizontal flips.
     if augment:
@@ -1236,7 +1236,7 @@ def load_image_gt(dataset, config, image_id, augment=False,
     # Bounding boxes. Note that some boxes might be all zeros
     # if the corresponding mask got cropped out.
     # bbox: [num_instances, (y1, x1, y2, x2)]
-    bbox = utils.extract_bboxes(mask)
+    bbox = tools.extract_bboxes(mask)
 
     # Active classes
     # Different datasets have different classes, so track the
@@ -1247,10 +1247,10 @@ def load_image_gt(dataset, config, image_id, augment=False,
 
     # Resize masks to smaller size to reduce memory usage
     if use_mini_mask:
-        mask = utils.minimize_mask(bbox, mask, config.MINI_MASK_SHAPE)
+        mask = tools.minimize_mask(bbox, mask, config.MINI_MASK_SHAPE)
 
     # Image meta data
-    image_meta = utils.compose_image_meta(image_id, shape, window, active_class_ids)
+    image_meta = tools.compose_image_meta(image_id, shape, window, active_class_ids)
 
     return image, image_meta, class_ids, bbox, mask
 
@@ -1270,7 +1270,7 @@ def build_rpn_targets(image_shape, anchors, gt_class_ids, gt_boxes, config):
         gt_class_ids = gt_class_ids[non_crowd_ix]
         gt_boxes = gt_boxes[non_crowd_ix]
         # Compute overlaps with crowd boxes [anchors, crowds]
-        crowd_overlaps = utils.compute_overlaps(anchors, crowd_boxes)
+        crowd_overlaps = tools.compute_overlaps(anchors, crowd_boxes)
         crowd_iou_max = np.amax(crowd_overlaps, axis=1)
         no_crowd_bool = (crowd_iou_max < 0.001)
     else:
@@ -1278,7 +1278,7 @@ def build_rpn_targets(image_shape, anchors, gt_class_ids, gt_boxes, config):
         no_crowd_bool = np.ones([anchors.shape[0]], dtype=bool)
 
     # Compute overlaps [num_anchors, num_gt_boxes]
-    overlaps = utils.compute_overlaps(anchors, gt_boxes)
+    overlaps = tools.compute_overlaps(anchors, gt_boxes)
 
     anchor_iou_argmax = np.argmax(overlaps, axis=1)
     anchor_iou_max = overlaps[np.arange(overlaps.shape[0]), anchor_iou_argmax]
@@ -1381,7 +1381,7 @@ class Dataset(torch.utils.data.Dataset):
 
         # Anchors
         # [anchor_count, (y1, x1, y2, x2)]
-        self.anchors = utils.generate_pyramid_anchors(config.RPN_ANCHOR_SCALES,
+        self.anchors = tools.generate_pyramid_anchors(config.RPN_ANCHOR_SCALES,
                                                  config.RPN_ANCHOR_RATIOS,
                                                  config.BACKBONE_SHAPES,
                                                  config.BACKBONE_STRIDES,
@@ -1414,7 +1414,7 @@ class Dataset(torch.utils.data.Dataset):
 
         # Add to batch
         rpn_match = rpn_match[:, np.newaxis]
-        images = utils.mold_image(image.astype(np.float32), self.config)
+        images = tools.mold_image(image.astype(np.float32), self.config)
 
         # Convert
         images = torch.from_numpy(images.transpose(2, 0, 1)).float()
@@ -1476,7 +1476,7 @@ class MaskRCNN(nn.Module):
         self.fpn = FPN(C1, C2, C3, C4, C5, out_channels=256)
 
         # Generate Anchors
-        self.anchors = Variable(torch.from_numpy(utils.generate_pyramid_anchors(config.RPN_ANCHOR_SCALES,
+        self.anchors = Variable(torch.from_numpy(tools.generate_pyramid_anchors(config.RPN_ANCHOR_SCALES,
                                                                                 config.RPN_ANCHOR_RATIOS,
                                                                                 config.BACKBONE_SHAPES,
                                                                                 config.BACKBONE_STRIDES,
@@ -2016,14 +2016,14 @@ class MaskRCNN(nn.Module):
         for image in images:
             # Resize image to fit the model expected size
             # TODO: move resizing to mold_image()
-            molded_image, window, scale, padding = utils.resize_image(
+            molded_image, window, scale, padding = tools.resize_image(
                 image,
                 min_dim=self.config.IMAGE_MIN_DIM,
                 max_dim=self.config.IMAGE_MAX_DIM,
                 padding=self.config.IMAGE_PADDING)
-            molded_image = utils.mold_image(molded_image, self.config)
+            molded_image = tools.mold_image(molded_image, self.config)
             # Build image_meta
-            image_meta = utils.compose_image_meta(
+            image_meta = tools.compose_image_meta(
                 0, image.shape, window,
                 np.zeros([self.config.NUM_CLASSES], dtype=np.int32))
             # Append
@@ -2090,7 +2090,7 @@ class MaskRCNN(nn.Module):
         full_masks = []
         for i in range(N):
             # Convert neural network mask to full size mask
-            full_mask = utils.unmold_mask(masks[i], boxes[i], image_shape)
+            full_mask = tools.unmold_mask(masks[i], boxes[i], image_shape)
             full_masks.append(full_mask)
         full_masks = np.stack(full_masks, axis=-1)\
             if full_masks else np.empty((0,) + masks.shape[1:3])
