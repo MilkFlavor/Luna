@@ -9,7 +9,7 @@ from libs.utils import *
 from cmyui import log, Ansi
 from model import InpaintNN
 
-log('----- DeepCreamPy modified by Gusbell -----', Ansi.CYAN)
+log('----- DeepCreamPy modified by MilkFlavor -----', Ansi.CYAN)
 
 class Decensor:
     def __init__(self):

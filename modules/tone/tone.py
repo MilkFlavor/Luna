@@ -9,7 +9,7 @@ from cv2 import GaussianBlur, bilateralFilter, filter2D, imread, imwrite
 
 from cmyui import log, Ansi
 
-log('----- ToneRemover modified by Gusbell -----', Ansi.CYAN)
+log('----- ToneRemover modified by MilkFlavor -----', Ansi.CYAN)
 
 def blur(img, blur_amount=5):
     if(blur_amount == 7):

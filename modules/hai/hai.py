@@ -22,7 +22,7 @@ cfg_path = 'hconfig.ini'
 
 colorama.init()
 
-log('----- HentAI modified by Gusbell -----', Ansi.CYAN)
+log('----- HentAI modified by MilkFlavor -----', Ansi.CYAN)
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
