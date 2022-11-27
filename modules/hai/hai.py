@@ -74,5 +74,3 @@ def bar_detect():
 if __name__ == "__main__":
     detect_instance = Detector(weights_path=weights_path)
     bar_detect()
-
-    pass
