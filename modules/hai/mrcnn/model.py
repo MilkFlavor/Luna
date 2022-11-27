@@ -12,8 +12,8 @@ import torch.optim as optim
 import torch.utils.data
 from torch.autograd import Variable
 
-import modules.hai.mrcnn.libs.tools as tools
-import visualize
+import mrcnn.tools as tools
+import mrcnn.visualize as visualize
 from nms.nms_wrapper import nms
 from roialign.roi_align.crop_and_resize import CropAndResizeFunction
 
