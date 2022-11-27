@@ -1,10 +1,12 @@
 import numpy as np
 from PIL import Image, ImageDraw
 
+
 # Convert PIL image to numpy array
 def image_to_array(image):
     array = np.asarray(image)
     return np.array(array / 255.0)
+
 
 # Find strongly connected components with the mask color
 def find_regions(image, mask_color):
@@ -13,8 +15,8 @@ def find_regions(image, mask_color):
     width, height = image.size
     for x in range(width):
         for y in range(height):
-            if is_right_color(pixel[x,y], *mask_color):
-                neighbors[x, y] = {(x,y)}
+            if is_right_color(pixel[x, y], *mask_color):
+                neighbors[x, y] = {(x, y)}
     for x, y in neighbors:
         candidates = (x + 1, y), (x, y + 1)
         for candidate in candidates:
@@ -37,38 +39,40 @@ def find_regions(image, mask_color):
     for pixel in neighbors:
         if pixel not in closed_list:
             regions.append(connected_component(pixel))
-    regions.sort(key = len, reverse = True)
+    regions.sort(key=len, reverse=True)
     return regions
 
+
 # Risk of box being bigger than the image
-def expand_bounding(img, region, expand_factor=1.5, min_size = 256):
+def expand_bounding(img, region, expand_factor=1.5, min_size=256):
     # Expand bounding box to capture more context
     x, y = zip(*region)
     min_x, min_y, max_x, max_y = min(x), min(y), max(x), max(y)
     width, height = img.size
-    width_center = width//2
-    height_center = height//2
+    width_center = width // 2
+    height_center = height // 2
     bb_width = max_x - min_x
     bb_height = max_y - min_y
-    x_center = (min_x + max_x)//2
-    y_center = (min_y + max_y)//2
+    x_center = (min_x + max_x) // 2
+    y_center = (min_y + max_y) // 2
     current_size = max(bb_width, bb_height)
-    current_size  = int(current_size * expand_factor)
+    current_size = int(current_size * expand_factor)
     max_size = min(width, height)
     if current_size > max_size:
         current_size = max_size
     elif current_size < min_size:
         current_size = min_size
-    x1 = x_center - current_size//2
-    x2 = x_center + current_size//2
-    y1 = y_center - current_size//2
-    y2 = y_center + current_size//2
+    x1 = x_center - current_size // 2
+    x2 = x_center + current_size // 2
+    y1 = y_center - current_size // 2
+    y2 = y_center + current_size // 2
     x1_square = x1
     y1_square = y1
     x2_square = x2
     y2_square = y2
     # Move bounding boxes that are partially outside of the image inside the image
-    if (y1_square < 0 or y2_square > (height - 1)) and (x1_square < 0 or x2_square > (width - 1)):
+    if (y1_square < 0 or y2_square >
+        (height - 1)) and (x1_square < 0 or x2_square > (width - 1)):
         # Conservative square region
         if x1_square < 0 and y1_square < 0:
             x1_square = 0
@@ -118,14 +122,17 @@ def expand_bounding(img, region, expand_factor=1.5, min_size = 256):
         x1_square, y1_square, x2_square, y2_square = min_x, min_y, max_x, max_y
     return x1_square, y1_square, x2_square, y2_square
 
+
 def is_right_color(pixel, r2, g2, b2):
     r1, g1, b1 = pixel
     return r1 == r2 and g1 == g2 and b1 == b2
+
 
 if __name__ == '__main__':
     image = Image.open('')
     no_alpha_image = image.convert('RGB')
     draw = ImageDraw.Draw(no_alpha_image)
-    for region in find_regions(no_alpha_image, [0,255,0]):
-        draw.rectangle(expand_bounding(no_alpha_image, region), outline=(0, 255, 0))
+    for region in find_regions(no_alpha_image, [0, 255, 0]):
+        draw.rectangle(expand_bounding(no_alpha_image, region),
+                       outline=(0, 255, 0))
     no_alpha_image.show()

@@ -4,17 +4,19 @@ Main function for UI and uses Detector class
 """
 
 import warnings
+
 warnings.filterwarnings('ignore')
 
 import os
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-import sys
-import colorama
 import configparser
-from detector import Detector
+import sys
 
-from cmyui import log, Ansi
+import colorama
+from cmyui import Ansi, log
+from detector import Detector
 
 versionNumber = '1.6.9'
 weights_path = 'weights.h5'
@@ -23,6 +25,7 @@ cfg_path = 'hconfig.ini'
 colorama.init()
 
 log('----- HentAI modified by MilkFlavor -----', Ansi.CYAN)
+
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -33,11 +36,17 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
-def hentAI_detection(dcp_dir=None, in_path=None, is_mosaic=False, is_video=False, force_jpg=False, dilation=0):
 
-    if dcp_dir==None:
+def hentAI_detection(dcp_dir=None,
+                     in_path=None,
+                     is_mosaic=False,
+                     is_video=False,
+                     force_jpg=False,
+                     dilation=0):
+
+    if dcp_dir == None:
         log('Input directory not founded', Ansi.RED)
-    if in_path==None:
+    if in_path == None:
         log('Onput directory not founded', Ansi.RED)
 
     hconfig = configparser.ConfigParser()
@@ -53,23 +62,34 @@ def hentAI_detection(dcp_dir=None, in_path=None, is_mosaic=False, is_video=False
 
     dilation = (dilation) * 2
 
-    if(is_mosaic == True and is_video==False):
+    if (is_mosaic == True and is_video == False):
         log('Mosaic detection not supported', Ansi.RED)
 
-    if(is_video==True):
+    if (is_video == True):
         log('Video detection not supported', Ansi.RED)
     else:
         log('----- Running detection -----', Ansi.CYAN)
-        detect_instance.run_on_folder(input_folder=in_path, output_folder=dcp_dir + '/', is_video=False, is_mosaic=is_mosaic, dilation=dilation)
+        detect_instance.run_on_folder(input_folder=in_path,
+                                      output_folder=dcp_dir + '/',
+                                      is_video=False,
+                                      is_mosaic=is_mosaic,
+                                      dilation=dilation)
 
     detect_instance.unload_model()
     log('Process complete', Ansi.GREEN)
+
 
 def bar_detect():
     d_entry = 'output'
     o_entry = 'input'
     dil_entry = 3
-    hentAI_detection(dcp_dir=d_entry, in_path=o_entry, is_mosaic=False, is_video=False, force_jpg=True, dilation=int(dil_entry))
+    hentAI_detection(dcp_dir=d_entry,
+                     in_path=o_entry,
+                     is_mosaic=False,
+                     is_video=False,
+                     force_jpg=True,
+                     dilation=int(dil_entry))
+
 
 if __name__ == "__main__":
     detect_instance = Detector(weights_path=weights_path)
