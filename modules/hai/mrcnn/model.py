@@ -14,7 +14,7 @@ from torch.autograd import Variable
 
 import mrcnn.tools as tools
 import mrcnn.visualize as visualize
-from nms.nms_wrapper import nms
+from mrcnn.nms.nms_wrapper import nms
 from roialign.roi_align.crop_and_resize import CropAndResizeFunction
 
 
