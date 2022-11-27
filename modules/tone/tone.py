@@ -6,10 +6,11 @@ Attempt to remove screentones from input images (png) using blurring and sharpen
 from os import listdir
 
 import numpy as np
-from cmyui import Ansi, log
 from cv2 import GaussianBlur, bilateralFilter, filter2D, imread, imwrite
 
-log('----- ToneRemover modified by MilkFlavor -----', Ansi.CYAN)
+from logging import info
+
+info('----- ToneRemover modified by MilkFlavor -----')
 
 
 def blur(img, blur_amount=5):
@@ -37,14 +38,14 @@ def getfileList(dir):
 
 def removeScreentones(dir_i, dir_o, blur_amount, sh_point=5.56, sh_low=-1.14):
     if (dir_i == [] or len(dir_i) == 0):
-        log('No input directory', Ansi.RED)
+        info('No input directory')
     if (dir_o == [] or len(dir_o) == 0):
-        log('No output directory', Ansi.RED)
+        info('No output directory')
     inputs = list(getfileList(dir_i))
     if (len(inputs) == 0):
-        log('No png file founded', Ansi.RED)
+        info('No png file founded')
 
-    log('Removing tone', Ansi.CYAN)
+    info('Removing tone')
 
     sh_point = float(sh_point)
     sh_low = float(sh_low)
@@ -85,8 +86,8 @@ def removeScreentones(dir_i, dir_o, blur_amount, sh_point=5.56, sh_low=-1.14):
         ret = sharp(blurred, sh_point, sh_low)
         sucess = imwrite(dir_o + '/' + i, ret)
         if (sucess != True):
-            log('An error occured', Ansi.RED)
-    log('ToneRemover has done running', Ansi.GREEN)
+            info('An error occured')
+    info('ToneRemover has done running')
 
     # loader.destroy()
     # popup = Tk()

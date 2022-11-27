@@ -3,12 +3,11 @@ import shutil
 import sys
 import time
 
-import colorama
 import esrgan.test
 import ffmpeg
 import numpy as np
 import skimage.draw
-from cmyui import Ansi, log
+from logging import info
 from cv2 import (CAP_PROP_FPS, CAP_PROP_FRAME_COUNT, CAP_PROP_FRAME_HEIGHT,
                  CAP_PROP_FRAME_WIDTH, INTER_AREA, GaussianBlur, VideoCapture,
                  VideoWriter, VideoWriter_fourcc, add, erode, multiply, resize)
@@ -78,31 +77,29 @@ class Detector():
                                            "ESR_temp/temp2/")
             self.fin_path = os.path.join(os.path.abspath('.'), "ESR_output/")
         except:
-            log(
-                "ERROR in Detector init: Cannot find ESR_out or some dir within",
-                Ansi.RED)
+            info(
+                "ERROR in Detector init: Cannot find ESR_out or some dir within")
             return
         # Create esrgan instance for detector instance
         try:
             self.esr_model_path = os.path.join(os.path.abspath('.'),
                                                "4x_FatalPixels_340000_G.pth")
         except:
-            log(
-                "ERROR in Detector init: ESRGAN model not found, make sure you have 4x_FatalPixels_340000_G.pth in this directory",
-                Ansi.RED)
+            info(
+                "ERROR in Detector init: ESRGAN model not found, make sure you have 4x_FatalPixels_340000_G.pth in this directory")
             return
         # Scan for cuda compatible GPU for ESRGAN. Mask-RCNN *should* automatically use a GPU if available.
         self.hardware = 'cpu'
         if self.model.check_cuda_gpu() == True:
             # print("CUDA-compatible GPU located! ****DEBUG CPU MODE****")
-            log("CUDA-compatible GPU located!", Ansi.GREEN)
+            info("CUDA-compatible GPU located!")
             self.hardware = 'cuda'
         # destroy model. Will re init during weight load.
         self.model = []
 
     # Clean out temp working images from all directories in ESR_temp. Code from https://stackoverflow.com/questions/185936/how-to-delete-the-contents-of-a-folder
     def clean_work_dirs(self):
-        log("Cleaning work dirs...", Ansi.CYAN)
+        info("Cleaning work dirs...")
         folders = [
             self.out_path, self.out_path2, self.temp_path, self.temp_path2
         ]
@@ -115,24 +112,23 @@ class Detector():
                     elif os.path.isdir(file_path):
                         shutil.rmtree(file_path)
                 except Exception as e:
-                    log(
+                    info(
                         'ERROR in clean_work_dirs: Failed to delete %s. Reason: %s'
-                        % (file_path, e), Ansi.RED)
+                        % (file_path, e))
 
     # Make sure this is called before using model weights
     def load_weights(self):
-        log('Creating model, Loading weights...', Ansi.WHITE)
+        info('Creating model, Loading weights...')
         self.model = modellib.MaskRCNN(mode="inference",
                                        config=self.config,
                                        model_dir=DEFAULT_LOGS_DIR)
         try:
             self.model.load_weights(self.weights_path, by_name=True)
-            log("Weights loaded", Ansi.GREEN)
+            info("Weights loaded")
         except Exception as e:
-            log("ERROR in load_weights: Model Load. Ensure you have your weights.h5 file!",
-                Ansi.RED,
+            info("ERROR in load_weights: Model Load. Ensure you have your weights.h5 file!"
                 end=' ')
-            log(e, Ansi.RED)
+            info(e)
 
     """Apply cover over image. Based off of Mask-RCNN Balloon color splash function
     image: RGB image [height, width, 3]
@@ -217,9 +213,8 @@ class Detector():
                 if image.shape[-1] == 4:
                     image = image[..., :3]  # strip alpha channel
             except Exception as e:
-                log(f"ERROR in resize_GAN: Image read. Skipping. {img_path}",
-                    Ansi.RED)
-                log(e, Ansi.RED)
+                info(f"ERROR in resize_GAN: Image read. Skipping. {img_path}")
+                info(e)
                 return
             # Calculate mosaic granularity.
             granularity = get_mosaic_res(np.array(image))
@@ -237,9 +232,8 @@ class Detector():
                 file_name = self.temp_path + img_name[:-4] + '.png'
                 skimage.io.imsave(file_name, mini_img)
             except Exception as e:
-                log(
-                    f"ERROR in resize_GAN: Image read. Skipping. {img_path} {e}",
-                    Ansi.RED)
+                info(
+                    f"ERROR in resize_GAN: Image read. Skipping. {img_path} {e}")
                 return
             # Now run ESRGAN inference
             gan_img_path = self.out_path + img_name[:-4] + '.png'
@@ -324,8 +318,7 @@ class Detector():
             # Remove bars from detection; class 1
 
             if len(r["scores"]) == 0:
-                print(colorama.Fore.RED + "Skipping image with no detection" +
-                      colorama.Fore.RESET)
+                print("Skipping image with no detection")
                 return
             remove_indices = np.where(r['class_ids'] != 2)
             new_masks = np.delete(r['masks'], remove_indices, axis=2)
@@ -604,10 +597,9 @@ class Detector():
                 if image.shape[-1] == 4:
                     image = image[..., :3]  # strip alpha channel
             except Exception as e:
-                log(
-                    f"ERROR in detect_and_cover: Image read. Skipping. {image_path}",
-                    Ansi.RED)
-                log(e)
+                info(
+                    f"ERROR in detect_and_cover: Image read. Skipping. {image_path}")
+                info(e)
                 return
             # Detect objects
             '''
@@ -640,9 +632,8 @@ class Detector():
                 file_name = save_path + fname[:-4] + '.png'
                 skimage.io.imsave(file_name, cov)
             except:
-                log(
-                    f"ERROR in detect_and_cover: Image write. Skipping. {image_path}",
-                    Ansi.RED)
+                info(
+                    f"ERROR in detect_and_cover: Image write. Skipping. {image_path}")
             # print("Saved to ", file_name)
 
     # Function for file parsing, calls the aboven detect_and_cover
@@ -662,8 +653,7 @@ class Detector():
         if dilation < 0:
             print("ERROR: dilation value < 0")
             return
-        log("Will expand each mask by {} pixels".format(dilation / 2),
-            Ansi.WHITE)
+        info("Will expand each mask by {} pixels".format(dilation / 2))
 
         file_counter = 0
         if (is_video == True):
@@ -704,9 +694,8 @@ class Detector():
                           file_s)
 
             # save run detection with outputs to output folder
-            log(
-                "--------------------------------------------------------------------------",
-                Ansi.GRAY)
+            info(
+                "--------------------------------------------------------------------------")
             for img_path, img_name in img_list:
                 star = time.perf_counter()
                 self.detect_and_cover(
@@ -717,19 +706,12 @@ class Detector():
                     dilation=dilation)  #sending force_jpg for debugging
                 fin = time.perf_counter()
                 total_time = fin - star
-                print(
-                    colorama.Fore.CYAN + 'Detection on image' +
-                    colorama.Fore.RESET, file_counter, 'of', len(img_list),
-                    'finished in ' + colorama.Fore.YELLOW +
-                    '{:.4f}'.format(total_time) + colorama.Fore.RESET +
-                    ' seconds')
                 file_counter += 1
-            log(
-                "--------------------------------------------------------------------------",
-                Ansi.GRAY)
+            info(
+                "--------------------------------------------------------------------------")
 
     # Unloads both models if possible, to allow hent-AI to remain open while DCP runs.
     def unload_model(self):
         del self.esrgan_instance
         self.model.unload_model()
-        log('Model unload successful!', Ansi.GREEN)
+        info('Model unload successful!')

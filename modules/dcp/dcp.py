@@ -5,12 +5,12 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import config
 import file
 import numpy as np
-from cmyui import Ansi, log
 from libs.utils import *
 from model import InpaintNN
 from PIL import Image
+from logging import info
 
-log('----- DeepCreamPy modified by MilkFlavor -----', Ansi.CYAN)
+info("----- DeepCreamPy modified by MilkFlavor -----")
 
 
 class Decensor:
@@ -55,17 +55,13 @@ class Decensor:
             color_bn, color_ext = os.path.splitext(file_name)
             if os.path.isfile(
                     color_file_path) and color_ext.casefold() == ".png":
-                log(
-                    "--------------------------------------------------------------------------",
-                    Ansi.GRAY)
-                log("Decensoring the image {}".format(color_file_path),
-                    Ansi.CYAN)
+                info(
+                    "--------------------------------------------------------------------------")
+                info("Decensoring the image {}".format(color_file_path))
                 try:
                     colored_img = Image.open(color_file_path)
                 except:
-                    log(
-                        "Cannot identify image file (" + str(color_file_path) +
-                        ")", Ansi.RED)
+                    info("Error: Cannot open the image {}".format(color_file_path))
                     self.files_removed.append((color_file_path, 3))
                     continue
                 if self.is_mosaic:
@@ -82,29 +78,24 @@ class Decensor:
                                                 file_name)
                             break
                     else:
-                        log(
+                        info(
                             "Corresponding original, uncolored image not found in {}"
-                            .format(color_file_path), Ansi.RED)
-                        log(
-                            "Check if it exists and is in the PNG or JPG format",
-                            Ansi.RED)
+                            .format(color_file_path))
+                        info(
+                            "Check if it exists and is in the PNG or JPG format")
                 else:
                     self.decensor_image(colored_img, colored_img, file_name)
             else:
-                log(
-                    "--------------------------------------------------------------------------",
-                    Ansi.GRAY)
-                log("Irregular file detected : " + str(color_file_path),
-                    Ansi.RED)
-        log(
-            "--------------------------------------------------------------------------",
-            Ansi.GRAY)
+                info(
+                    "--------------------------------------------------------------------------")
+                info("Irregular file detected : " + str(color_file_path))
+        info(
+            "--------------------------------------------------------------------------")
         if (self.files_removed is not None):
             file.error_messages(None, self.files_removed)
-        log("Decensoring complete!", Ansi.GREEN)
+        info("Decensoring complete!")
 
     def decensor_image(self, ori, colored, file_name=None):
-        width, height = ori.size
         has_alpha = False
         if (ori.mode == "RGBA"):
             has_alpha = True
@@ -124,12 +115,10 @@ class Decensor:
             mask = self.get_mask(ori_array)
         regions = find_regions(colored.convert('RGB'),
                                [v * 255 for v in self.mask_color])
-        log(
-            "Found {region_count} green regions in this image".format(
-                region_count=len(regions)), Ansi.CYAN)
+        info("Found {} regions to decensor".format(len(regions)))
 
         if len(regions) == 0 and not self.is_mosaic:
-            log("No green regions detected", Ansi.RED)
+            info("No green regions detected")
             return
         output_img_array = ori_array[0].copy()
 
@@ -174,10 +163,10 @@ class Decensor:
                             output_img_array[bounding_height_index][
                                 bounding_width_index] = pred_img_array[
                                     i, :, :, :][row][col]
-            log(
+            info(
                 "{region_counter} out of {region_count} regions decensored.".
                 format(region_counter=region_counter,
-                       region_count=len(regions)), Ansi.GRAY)
+                       region_count=len(regions)))
 
         output_img_array = output_img_array * 255.0
 
@@ -189,12 +178,12 @@ class Decensor:
         if file_name != None:
             save_path = os.path.join(self.args.decensor_output_path, file_name)
             output_img.save(save_path)
-            log(
+            info(
                 "Decensored image saved to {save_path}!".format(
-                    save_path=save_path), Ansi.GREEN)
+                    save_path=save_path))
             return
         else:
-            log("Decensored image", Ansi.GREEN)
+            info("Decensored image")
             return output_img
 
 
