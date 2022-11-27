@@ -20,7 +20,7 @@ import matplotlib.patches as patches
 import matplotlib.lines as lines
 from matplotlib.patches import Polygon
 
-import mrcnn.tools as tools
+import mrcnn.utils as utils
 
 
 ############################################################
@@ -196,7 +196,7 @@ def draw_rois(image, rois, refined_rois, mask, class_ids, class_names, limit=10)
                     color='w', size=11, backgroundcolor="none")
 
             # Mask
-            m = tools.unmold_mask(mask[id], rois[id]
+            m = utils.unmold_mask(mask[id], rois[id]
                                   [:4].astype(np.int32), image.shape)
             masked_image = apply_mask(masked_image, m, color)
 

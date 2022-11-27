@@ -1,3 +1,12 @@
+"""
+Mask R-CNN
+The main Mask R-CNN model implemenetation.
+
+Copyright (c) 2017 Matterport, Inc.
+Licensed under the MIT License (see LICENSE for details)
+Written by Waleed Abdulla
+"""
+
 import datetime
 import math
 import os
@@ -12,13 +21,15 @@ import torch.optim as optim
 import torch.utils.data
 from torch.autograd import Variable
 
-import mrcnn.tools as tools
+import mrcnn.utils as utils
 import mrcnn.visualize as visualize
-from mrcnn.nms.nms_wrapper import nms
+from nms.nms_wrapper import nms
 from roialign.roi_align.crop_and_resize import CropAndResizeFunction
 
 
-#  Utility Functions (Inspired from Matterport)
+############################################################
+#  Logging Utility Functions
+############################################################
 
 def log(text, array=None):
     """Prints a text message. And, optionally, if a Numpy array is provided it
@@ -53,8 +64,9 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
         print()
 
 
-
+############################################################
 #  Pytorch Utility Functions
+############################################################
 
 def unique1d(tensor):
     if tensor.size()[0] == 0 or tensor.size()[0] == 1:
@@ -107,9 +119,9 @@ class SamePad2d(nn.Module):
         return self.__class__.__name__
 
 
-
+############################################################
 #  FPN Graph
-
+############################################################
 
 class TopDownLayer(nn.Module):
     def __init__(self, in_channels, out_channels):
@@ -180,9 +192,9 @@ class FPN(nn.Module):
         return [p2_out, p3_out, p4_out, p5_out, p6_out]
 
 
-
+############################################################
 #  Resnet Graph
-
+############################################################
 
 class Bottleneck(nn.Module):
     expansion = 4
@@ -278,9 +290,9 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
 
-
+############################################################
 #  Proposal Layer
-
+############################################################
 
 def apply_box_deltas(boxes, deltas):
     """Applies the given deltas to the given boxes.
@@ -384,9 +396,9 @@ def proposal_layer(inputs, proposal_count, nms_threshold, anchors, config=None):
     return normalized_boxes
 
 
-
+############################################################
 #  ROIAlign Layer
-
+############################################################
 
 def pyramid_roi_align(inputs, pool_size, image_shape):
     """Implements ROI Pooling on multiple levels of the feature pyramid.
@@ -480,9 +492,9 @@ def pyramid_roi_align(inputs, pool_size, image_shape):
     return pooled
 
 
-
+############################################################
 #  Detection Target Layer
-
+############################################################
 def bbox_overlaps(boxes1, boxes2):
     """Computes IoU overlaps between two sets of boxes.
     boxes1, boxes2: [N, (y1, x1, y2, x2)].
@@ -602,7 +614,7 @@ def detection_target_layer(proposals, gt_class_ids, gt_boxes, gt_masks, config):
         roi_gt_class_ids = gt_class_ids[roi_gt_box_assignment.data]
 
         # Compute bbox refinement for positive ROIs
-        deltas = Variable(tools.box_refinement(positive_rois.data, roi_gt_boxes.data), requires_grad=False)
+        deltas = Variable(utils.box_refinement(positive_rois.data, roi_gt_boxes.data), requires_grad=False)
         std_dev = Variable(torch.from_numpy(config.BBOX_STD_DEV).float(), requires_grad=False)
         if config.GPU_COUNT:
             std_dev = std_dev.cuda()
@@ -824,7 +836,7 @@ def detection_layer(config, rois, mrcnn_class, mrcnn_bbox, image_meta):
     # Currently only supports batchsize 1
     rois = rois.squeeze(0)
 
-    _, _, window, _ = tools.parse_image_meta(image_meta)
+    _, _, window, _ = parse_image_meta(image_meta)
     window = window[0]
     detections = refine_detections(rois, mrcnn_class, mrcnn_bbox, window, config)
 
@@ -889,8 +901,9 @@ class RPN(nn.Module):
         return [rpn_class_logits, rpn_probs, rpn_bbox]
 
 
-
+############################################################
 #  Feature Pyramid Network Heads
+############################################################
 
 class Classifier(nn.Module):
     def __init__(self, depth, pool_size, image_shape, num_classes):
@@ -971,109 +984,36 @@ class Mask(nn.Module):
         return x
 
 
+############################################################
+#  Loss Functions
+############################################################
 
-#  Loss Functions -> Focal Loss
+def compute_rpn_class_loss(rpn_match, rpn_class_logits):
+    """RPN anchor classifier loss.
 
-    def focal_loss(self, x, y):
-        '''Focal loss.
-        Args:
-          x: (tensor) sized [N,D].
-          y: (tensor) sized [N,].
-        Return:
-          (tensor) focal loss.
-        '''
-        alpha = 0.25
-        gamma = 2
+    rpn_match: [batch, anchors, 1]. Anchor match type. 1=positive,
+               -1=negative, 0=neutral anchor.
+    rpn_class_logits: [batch, anchors, 2]. RPN classifier logits for FG/BG.
+    """
 
-        t = tools.one_hot_embedding(y.data.cpu(), 1+self.num_classes) 
-        t = t[:,1:]  
-        t = Variable(t).cuda() 
+    # Squeeze last dim to simplify
+    rpn_match = rpn_match.squeeze(2)
 
-        p = x.sigmoid()
-        pt = p*t + (1-p)*(1-t)         
-        w = alpha*t + (1-alpha)*(1-t)  
-        w = w * (1-pt).pow(gamma)
-        return F.binary_cross_entropy_with_logits(x, t, w, size_average=False)
+    # Get anchor classes. Convert the -1/+1 match to 0/1 values.
+    anchor_class = (rpn_match == 1).long()
 
-    def focal_loss_alt(self, x, y):
-        '''Focal loss alternative.
-        Args:
-          x: (tensor) sized [N,D].
-          y: (tensor) sized [N,].
-        Return:
-          (tensor) focal loss.
-        '''
-        alpha = 0.25
+    # Positive and Negative anchors contribute to the loss,
+    # but neutral anchors (match value = 0) don't.
+    indices = torch.nonzero(rpn_match != 0)
 
-        t = tools.one_hot_embedding(y.data.cpu(), 1+self.num_classes)
-        t = t[:,1:]
-        t = Variable(t).cuda()
+    # Pick rows that contribute to the loss and filter out the rest.
+    rpn_class_logits = rpn_class_logits[indices.data[:,0],indices.data[:,1],:]
+    anchor_class = anchor_class[indices.data[:,0],indices.data[:,1]]
 
-        xt = x*(2*t-1)  # xt = x if t > 0 else -x
-        pt = (2*xt+1).sigmoid()
+    # Crossentropy loss
+    loss = F.cross_entropy(rpn_class_logits, anchor_class)
 
-        w = alpha*t + (1-alpha)*(1-t)
-        loss = -w*pt.log() / 2
-        return loss.sum()
-    
-    
-    
-    def compute_rpn_class_loss(rpn_match, rpn_class_logits):
-        """RPN anchor classifier loss.
-        rpn_match: [batch, anchors, 1]. Anchor match type. 1=positive,
-                   -1=negative, 0=neutral anchor.
-        rpn_class_logits: [batch, anchors, 2]. RPN classifier logits for FG/BG.
-        """
-
-        # Squeeze last dim to simplify
-        rpn_match = rpn_match.squeeze(2)
-
-        # Get anchor classes. Convert the -1/+1 match to 0/1 values.
-        anchor_class = (rpn_match == 1).long()
-
-        # Positive and Negative anchors contribute to the loss,
-        # but neutral anchors (match value = 0) don't.
-        indices = torch.nonzero(rpn_match != 0)
-
-        # Pick rows that contribute to the loss and filter out the rest.
-        rpn_class_logits = rpn_class_logits[indices.data[:,0],indices.data[:,1],:]
-        anchor_class = anchor_class[indices.data[:,0],indices.data[:,1]]
-
-        # Crossentropy loss
-        loss = F.cross_entropy(rpn_class_logits, anchor_class)
-
-        return loss
-
-
-    def forward(self, loc_preds, loc_targets, cls_preds, cls_targets):
-        '''Compute loss between (loc_preds, loc_targets) and (cls_preds, cls_targets).
-        Args:
-          loc_preds: (tensor) predicted locations, sized [batch_size, #anchors, 4].
-          loc_targets: (tensor) encoded target locations, sized [batch_size, #anchors, 4].
-          cls_preds: (tensor) predicted class confidences, sized [batch_size, #anchors, #classes].
-          cls_targets: (tensor) encoded target labels, sized [batch_size, #anchors].
-        loss:
-          (tensor) loss = SmoothL1Loss(loc_preds, loc_targets) + FocalLoss(cls_preds, cls_targets).
-        '''
-        batch_size, num_boxes = cls_targets.size()
-        pos = cls_targets > 0  # [N,#anchors]
-        num_pos = pos.data.long().sum()
-
-    
-        mask = pos.unsqueeze(2).expand_as(loc_preds)       # [N,#anchors,4]
-        masked_loc_preds = loc_preds[mask].view(-1,4)      # [#pos,4]
-        masked_loc_targets = loc_targets[mask].view(-1,4)  # [#pos,4]
-        loc_loss = F.smooth_l1_loss(masked_loc_preds, masked_loc_targets, size_average=False)
-
-        
-        pos_neg = cls_targets > -1  # exclude ignored anchors
-        mask = pos_neg.unsqueeze(2).expand_as(cls_preds)
-        masked_cls_preds = cls_preds[mask].view(-1,self.num_classes)
-        cls_loss = self.focal_loss_alt(masked_cls_preds, cls_targets[pos_neg])
-
-        print('loc_loss: %.3f | cls_loss: %.3f' % (loc_loss.data[0]/num_pos, cls_loss.data[0]/num_pos), end=' | ')
-        loss = (loc_loss+cls_loss)/num_pos
-        return loss
+    return loss
 
 def compute_rpn_bbox_loss(target_bbox, rpn_match, rpn_bbox):
     """Return the RPN bounding box loss graph.
@@ -1183,7 +1123,7 @@ def compute_mrcnn_mask_loss(target_masks, target_class_ids, pred_masks):
 
 def compute_losses(rpn_match, rpn_bbox, rpn_class_logits, rpn_pred_bbox, target_class_ids, mrcnn_class_logits, target_deltas, mrcnn_bbox, target_mask, mrcnn_mask):
 
-    rpn_class_loss = tools.compute_rpn_class_loss(rpn_match, rpn_class_logits)
+    rpn_class_loss = compute_rpn_class_loss(rpn_match, rpn_class_logits)
     rpn_bbox_loss = compute_rpn_bbox_loss(rpn_bbox, rpn_match, rpn_pred_bbox)
     mrcnn_class_loss = compute_mrcnn_class_loss(target_class_ids, mrcnn_class_logits)
     mrcnn_bbox_loss = compute_mrcnn_bbox_loss(target_deltas, target_class_ids, mrcnn_bbox)
@@ -1192,8 +1132,9 @@ def compute_losses(rpn_match, rpn_bbox, rpn_class_logits, rpn_pred_bbox, target_
     return [rpn_class_loss, rpn_bbox_loss, mrcnn_class_loss, mrcnn_bbox_loss, mrcnn_mask_loss]
 
 
-
+############################################################
 #  Data Generator
+############################################################
 
 def load_image_gt(dataset, config, image_id, augment=False,
                   use_mini_mask=False):
@@ -1220,12 +1161,12 @@ def load_image_gt(dataset, config, image_id, augment=False,
     image = dataset.load_image(image_id)
     mask, class_ids = dataset.load_mask(image_id)
     shape = image.shape
-    image, window, scale, padding = tools.resize_image(
+    image, window, scale, padding = utils.resize_image(
         image,
         min_dim=config.IMAGE_MIN_DIM,
         max_dim=config.IMAGE_MAX_DIM,
         padding=config.IMAGE_PADDING)
-    mask = tools.resize_mask(mask, scale, padding)
+    mask = utils.resize_mask(mask, scale, padding)
 
     # Random horizontal flips.
     if augment:
@@ -1236,7 +1177,7 @@ def load_image_gt(dataset, config, image_id, augment=False,
     # Bounding boxes. Note that some boxes might be all zeros
     # if the corresponding mask got cropped out.
     # bbox: [num_instances, (y1, x1, y2, x2)]
-    bbox = tools.extract_bboxes(mask)
+    bbox = utils.extract_bboxes(mask)
 
     # Active classes
     # Different datasets have different classes, so track the
@@ -1247,21 +1188,34 @@ def load_image_gt(dataset, config, image_id, augment=False,
 
     # Resize masks to smaller size to reduce memory usage
     if use_mini_mask:
-        mask = tools.minimize_mask(bbox, mask, config.MINI_MASK_SHAPE)
+        mask = utils.minimize_mask(bbox, mask, config.MINI_MASK_SHAPE)
 
     # Image meta data
-    image_meta = tools.compose_image_meta(image_id, shape, window, active_class_ids)
+    image_meta = compose_image_meta(image_id, shape, window, active_class_ids)
 
     return image, image_meta, class_ids, bbox, mask
 
 def build_rpn_targets(image_shape, anchors, gt_class_ids, gt_boxes, config):
-  
+    """Given the anchors and GT boxes, compute overlaps and identify positive
+    anchors and deltas to refine them to match their corresponding GT boxes.
+
+    anchors: [num_anchors, (y1, x1, y2, x2)]
+    gt_class_ids: [num_gt_boxes] Integer class IDs.
+    gt_boxes: [num_gt_boxes, (y1, x1, y2, x2)]
+
+    Returns:
+    rpn_match: [N] (int32) matches between anchors and GT boxes.
+               1 = positive anchor, -1 = negative anchor, 0 = neutral
+    rpn_bbox: [N, (dy, dx, log(dh), log(dw))] Anchor bbox deltas.
+    """
     # RPN Match: 1 = positive anchor, -1 = negative anchor, 0 = neutral
     rpn_match = np.zeros([anchors.shape[0]], dtype=np.int32)
     # RPN bounding boxes: [max anchors per image, (dy, dx, log(dh), log(dw))]
     rpn_bbox = np.zeros((config.RPN_TRAIN_ANCHORS_PER_IMAGE, 4))
 
- 
+    # Handle COCO crowds
+    # A crowd box in COCO is a bounding box around several instances. Exclude
+    # them from training. A crowd box is given a negative class ID.
     crowd_ix = np.where(gt_class_ids < 0)[0]
     if crowd_ix.shape[0] > 0:
         # Filter out crowds from ground truth class IDs and boxes
@@ -1270,7 +1224,7 @@ def build_rpn_targets(image_shape, anchors, gt_class_ids, gt_boxes, config):
         gt_class_ids = gt_class_ids[non_crowd_ix]
         gt_boxes = gt_boxes[non_crowd_ix]
         # Compute overlaps with crowd boxes [anchors, crowds]
-        crowd_overlaps = tools.compute_overlaps(anchors, crowd_boxes)
+        crowd_overlaps = utils.compute_overlaps(anchors, crowd_boxes)
         crowd_iou_max = np.amax(crowd_overlaps, axis=1)
         no_crowd_bool = (crowd_iou_max < 0.001)
     else:
@@ -1278,8 +1232,18 @@ def build_rpn_targets(image_shape, anchors, gt_class_ids, gt_boxes, config):
         no_crowd_bool = np.ones([anchors.shape[0]], dtype=bool)
 
     # Compute overlaps [num_anchors, num_gt_boxes]
-    overlaps = tools.compute_overlaps(anchors, gt_boxes)
+    overlaps = utils.compute_overlaps(anchors, gt_boxes)
 
+    # Match anchors to GT Boxes
+    # If an anchor overlaps a GT box with IoU >= 0.7 then it's positive.
+    # If an anchor overlaps a GT box with IoU < 0.3 then it's negative.
+    # Neutral anchors are those that don't match the conditions above,
+    # and they don't influence the loss function.
+    # However, don't keep any GT box unmatched (rare, but happens). Instead,
+    # match it to the closest anchor (even if its max IoU is < 0.3).
+    #
+    # 1. Set negative anchors first. They get overwritten below if a GT box is
+    # matched to them. Skip boxes in crowd areas.
     anchor_iou_argmax = np.argmax(overlaps, axis=1)
     anchor_iou_max = overlaps[np.arange(overlaps.shape[0]), anchor_iou_argmax]
     rpn_match[(anchor_iou_max < 0.3) & (no_crowd_bool)] = -1
@@ -1381,7 +1345,7 @@ class Dataset(torch.utils.data.Dataset):
 
         # Anchors
         # [anchor_count, (y1, x1, y2, x2)]
-        self.anchors = tools.generate_pyramid_anchors(config.RPN_ANCHOR_SCALES,
+        self.anchors = utils.generate_pyramid_anchors(config.RPN_ANCHOR_SCALES,
                                                  config.RPN_ANCHOR_RATIOS,
                                                  config.BACKBONE_SHAPES,
                                                  config.BACKBONE_STRIDES,
@@ -1414,7 +1378,7 @@ class Dataset(torch.utils.data.Dataset):
 
         # Add to batch
         rpn_match = rpn_match[:, np.newaxis]
-        images = tools.mold_image(image.astype(np.float32), self.config)
+        images = mold_image(image.astype(np.float32), self.config)
 
         # Convert
         images = torch.from_numpy(images.transpose(2, 0, 1)).float()
@@ -1431,9 +1395,9 @@ class Dataset(torch.utils.data.Dataset):
         return self.image_ids.shape[0]
 
 
-
+############################################################
 #  MaskRCNN Class
-
+############################################################
 
 class MaskRCNN(nn.Module):
     """Encapsulates the Mask RCNN model functionality.
@@ -1476,7 +1440,7 @@ class MaskRCNN(nn.Module):
         self.fpn = FPN(C1, C2, C3, C4, C5, out_channels=256)
 
         # Generate Anchors
-        self.anchors = Variable(torch.from_numpy(tools.generate_pyramid_anchors(config.RPN_ANCHOR_SCALES,
+        self.anchors = Variable(torch.from_numpy(utils.generate_pyramid_anchors(config.RPN_ANCHOR_SCALES,
                                                                                 config.RPN_ANCHOR_RATIOS,
                                                                                 config.BACKBONE_SHAPES,
                                                                                 config.BACKBONE_STRIDES,
@@ -2016,14 +1980,14 @@ class MaskRCNN(nn.Module):
         for image in images:
             # Resize image to fit the model expected size
             # TODO: move resizing to mold_image()
-            molded_image, window, scale, padding = tools.resize_image(
+            molded_image, window, scale, padding = utils.resize_image(
                 image,
                 min_dim=self.config.IMAGE_MIN_DIM,
                 max_dim=self.config.IMAGE_MAX_DIM,
                 padding=self.config.IMAGE_PADDING)
-            molded_image = tools.mold_image(molded_image, self.config)
+            molded_image = mold_image(molded_image, self.config)
             # Build image_meta
-            image_meta = tools.compose_image_meta(
+            image_meta = compose_image_meta(
                 0, image.shape, window,
                 np.zeros([self.config.NUM_CLASSES], dtype=np.int32))
             # Append
@@ -2090,9 +2054,72 @@ class MaskRCNN(nn.Module):
         full_masks = []
         for i in range(N):
             # Convert neural network mask to full size mask
-            full_mask = tools.unmold_mask(masks[i], boxes[i], image_shape)
+            full_mask = utils.unmold_mask(masks[i], boxes[i], image_shape)
             full_masks.append(full_mask)
         full_masks = np.stack(full_masks, axis=-1)\
             if full_masks else np.empty((0,) + masks.shape[1:3])
 
         return boxes, class_ids, scores, full_masks
+
+
+############################################################
+#  Data Formatting
+############################################################
+
+def compose_image_meta(image_id, image_shape, window, active_class_ids):
+    """Takes attributes of an image and puts them in one 1D array. Use
+    parse_image_meta() to parse the values back.
+
+    image_id: An int ID of the image. Useful for debugging.
+    image_shape: [height, width, channels]
+    window: (y1, x1, y2, x2) in pixels. The area of the image where the real
+            image is (excluding the padding)
+    active_class_ids: List of class_ids available in the dataset from which
+        the image came. Useful if training on images from multiple datasets
+        where not all classes are present in all datasets.
+    """
+    meta = np.array(
+        [image_id] +            # size=1
+        list(image_shape) +     # size=3
+        list(window) +          # size=4 (y1, x1, y2, x2) in image cooredinates
+        list(active_class_ids)  # size=num_classes
+    )
+    return meta
+
+
+# Two functions (for Numpy and TF) to parse image_meta tensors.
+def parse_image_meta(meta):
+    """Parses an image info Numpy array to its components.
+    See compose_image_meta() for more details.
+    """
+    image_id = meta[:, 0]
+    image_shape = meta[:, 1:4]
+    window = meta[:, 4:8]   # (y1, x1, y2, x2) window of image in in pixels
+    active_class_ids = meta[:, 8:]
+    return image_id, image_shape, window, active_class_ids
+
+
+def parse_image_meta_graph(meta):
+    """Parses a tensor that contains image attributes to its components.
+    See compose_image_meta() for more details.
+
+    meta: [batch, meta length] where meta length depends on NUM_CLASSES
+    """
+    image_id = meta[:, 0]
+    image_shape = meta[:, 1:4]
+    window = meta[:, 4:8]
+    active_class_ids = meta[:, 8:]
+    return [image_id, image_shape, window, active_class_ids]
+
+
+def mold_image(images, config):
+    """Takes RGB images with 0-255 values and subtraces
+    the mean pixel and converts it to float. Expects image
+    colors in RGB order.
+    """
+    return images.astype(np.float32) - config.MEAN_PIXEL
+
+
+def unmold_image(normalized_images, config):
+    """Takes a image normalized with mold() and returns the original."""
+    return (normalized_images + config.MEAN_PIXEL).astype(np.uint8)
