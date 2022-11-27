@@ -8,8 +8,8 @@ from PIL import Image
 
 basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
 
-input_path = "/content/Luna/modules/convert/input"
-output_path = "/content/Luna/modules/convert/output"
+input_path = "/input"
+output_path = "/output"
 
 try:
     # Create output folders

@@ -398,7 +398,7 @@ class Detector():
         vwriter = VideoWriter(file_name, VideoWriter_fourcc(*'mp4v'), fps, (width, height))
         count = 0
         print("Beginning build. Do ensure only relevant images are in source directory")
-        input_path = dcp_path + '/decensor_output/'
+        input_path = dcp_path + '/output/'
         img_list = []
 
         for file in os.listdir(input_path):
