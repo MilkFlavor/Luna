@@ -7,7 +7,8 @@ Licensed under the MIT License (see LICENSE for details)
 Written by Waleed Abdulla
 """
 
-import logging
+from logging import INFO, basicConfig, info
+basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
 import math
 import os
 import random

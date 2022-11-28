@@ -3,11 +3,10 @@ This script is used to convert the data from the old image format to a
 PNG format by using the Pillow .save function.
 """
 from logging import INFO, basicConfig, info
+basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
 from os import getcwd, listdir, mkdir, path
 
 from PIL import Image
-
-basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
 
 input_path = "/input"
 output_path = "/output"

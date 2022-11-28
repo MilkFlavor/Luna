@@ -2,7 +2,8 @@
 Running the isort command on the source_dirs.
 """
 import subprocess
-from logging import info
+from logging import INFO, basicConfig, info
+basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
 
 print("If this script fails or runs into error please run:")
 print("Ubuntu: sudo apt install isort")

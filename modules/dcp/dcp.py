@@ -8,7 +8,8 @@ import numpy as np
 from libs.utils import *
 from model import InpaintNN
 from PIL import Image
-from logging import info
+from logging import INFO, basicConfig, info
+basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
 
 info("----- DeepCreamPy modified by MilkFlavor -----")
 

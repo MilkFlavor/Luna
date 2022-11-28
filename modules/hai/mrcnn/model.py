@@ -8,7 +8,8 @@ Written by Waleed Abdulla
 """
 
 import datetime
-import logging
+from logging import INFO, basicConfig, info
+basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
 import math
 import multiprocessing
 import os
@@ -1349,7 +1350,7 @@ def load_image_gt(dataset,
     mask = utils.resize_mask(mask, scale, padding, crop)
 
     if augment:
-        logging.warning("'augment' is deprecated. Use 'augmentation' instead.")
+        log("'augment' is deprecated. Use 'augmentation' instead.")
         if random.randint(0, 1):
             image = np.fliplr(image)
             mask = np.fliplr(mask)
@@ -1955,7 +1956,7 @@ def data_generator(dataset,
             raise
         except:
             # Log it and skip the image
-            logging.exception("Error processing image {}".format(
+            log("Error processing image {}".format(
                 dataset.image_info[image_id]))
             error_count += 1
             if error_count > 5:

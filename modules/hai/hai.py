@@ -8,7 +8,8 @@ import warnings
 warnings.filterwarnings('ignore')
 
 import os
-from logging import info
+from logging import INFO, basicConfig, info
+basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 

@@ -8,7 +8,8 @@ from os import listdir
 import numpy as np
 from cv2 import GaussianBlur, bilateralFilter, filter2D, imread, imwrite
 
-from logging import info
+from logging import INFO, basicConfig, info
+basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
 
 info('----- ToneRemover modified by MilkFlavor -----')
 
