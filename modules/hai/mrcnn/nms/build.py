@@ -25,7 +25,6 @@ extra_compile_args = ['-fopenmp', '-std=c99']
 nms = load(
     name='nms',
     sources=sources,
-    extra_objects=extra_objects,
     extra_compile_args=extra_compile_args,
     define_macros=defines,
     relative_to=__file__,

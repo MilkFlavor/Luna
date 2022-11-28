@@ -28,7 +28,6 @@ extra_objects = [os.path.join(this_file, fname) for fname in extra_objects]
 roi_align = load(
     name='roi_align',
     sources=sources,
-    extra_objects=extra_objects,
     extra_compile_args=extra_compile_args,
     define_macros=defines,
     relative_to=__file__,
