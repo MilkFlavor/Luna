@@ -7,20 +7,12 @@ def conv_nn(input, dims1, dims2, size1, size2, k_size=3):
     pp = tf.pad(tensor=input,
                 paddings=[[0, 0], [1, 1], [1, 1], [0, 0]],
                 mode="REFLECT")
-    L1 = layers.conv2d(pp,
-                       dims1, [k_size, k_size],
-                       stride=[1, 1],
-                       padding='VALID',
-                       activation_fn=None)
+    L1 = tf.nn.elu(tf.nn.conv2d(pp, dims1, [1, size1, size1, 1], padding='VALID'))
     L1 = tf.nn.elu(L1)
     pp = tf.pad(tensor=L1,
                 paddings=[[0, 0], [1, 1], [1, 1], [0, 0]],
                 mode="REFLECT")
-    L2 = layers.conv2d(pp,
-                       dims2, [k_size, k_size],
-                       stride=[1, 1],
-                       padding='VALID',
-                       activation_fn=None)
+    L2 = tf.nn.elu(tf.nn.conv2d(pp, dims2, [1, size2, size2, 1], padding='VALID'))
     L2 = tf.nn.elu(L2)
     L2 = tf.compat.v1.image.resize_nearest_neighbor(L2, (size1, size2))
     return L2
@@ -35,96 +27,52 @@ def encoder(input, reuse, name):
         p = tf.pad(tensor=input,
                    paddings=[[0, 0], [2, 2], [2, 2], [0, 0]],
                    mode="REFLECT")
-        CL1 = layers.conv2d(p,
-                            32, [5, 5],
-                            stride=[1, 1],
-                            padding='VALID',
-                            activation_fn=None)
+        CL1 = tf.nn.elu(tf.nn.conv2d(p, 64, [1, 5, 5, 1], padding='VALID'))
         CL1 = tf.nn.elu(CL1)  # 256 256 32
         p = tf.pad(tensor=CL1,
                    paddings=[[0, 0], [1, 1], [1, 1], [0, 0]],
                    mode="REFLECT")
-        CL2 = layers.conv2d(p,
-                            64, [3, 3],
-                            stride=[2, 2],
-                            padding='VALID',
-                            activation_fn=None)
+        CL2 = tf.nn.elu(tf.nn.conv2d(p, 128, [1, 3, 3, 1], padding='VALID'))
         CL2 = tf.nn.elu(CL2)  # 128 128 64
         p = tf.pad(tensor=CL2,
                    paddings=[[0, 0], [1, 1], [1, 1], [0, 0]],
                    mode="REFLECT")
-        CL3 = layers.conv2d(p,
-                            64, [3, 3],
-                            stride=[1, 1],
-                            padding='VALID',
-                            activation_fn=None)
+        CL3 = tf.nn.elu(tf.nn.conv2d(p, 256, [1, 3, 3, 1], padding='VALID'))
         CL3 = tf.nn.elu(CL3)  # 128 128 64
         p = tf.pad(tensor=CL3,
                    paddings=[[0, 0], [1, 1], [1, 1], [0, 0]],
                    mode="REFLECT")
-        CL4 = layers.conv2d(p,
-                            128, [3, 3],
-                            stride=[2, 2],
-                            padding='VALID',
-                            activation_fn=None)
+        CL4 = tf.nn.elu(tf.nn.conv2d(p, 256, [1, 3, 3, 1], padding='VALID'))
         CL4 = tf.nn.elu(CL4)  # 64 64 128
         p = tf.pad(tensor=CL4,
                    paddings=[[0, 0], [1, 1], [1, 1], [0, 0]],
                    mode="REFLECT")
-        CL5 = layers.conv2d(p,
-                            128, [3, 3],
-                            stride=[1, 1],
-                            padding='VALID',
-                            activation_fn=None)
+        CL5 = tf.nn.elu(tf.nn.conv2d(p, 256, [1, 3, 3, 1], padding='VALID'))
         CL5 = tf.nn.elu(CL5)  # 64 64 128
         p = tf.pad(tensor=CL5,
                    paddings=[[0, 0], [1, 1], [1, 1], [0, 0]],
                    mode="REFLECT")
-        CL6 = layers.conv2d(p,
-                            256, [3, 3],
-                            stride=[2, 2],
-                            padding='VALID',
-                            activation_fn=None)
+        CL6 = tf.nn.elu(tf.nn.conv2d(p, 256, [1, 3, 3, 1], padding='VALID'))
         CL6 = tf.nn.elu(CL6)  # 32 32 128
         p = tf.pad(tensor=CL6,
                    paddings=[[0, 0], [2, 2], [2, 2], [0, 0]],
                    mode="REFLECT")
-        DCL1 = layers.conv2d(p,
-                             256, [3, 3],
-                             rate=2,
-                             stride=[1, 1],
-                             padding='VALID',
-                             activation_fn=None)
+        DCL1 = tf.nn.elu(tf.nn.conv2d(p, 256, [1, 7, 7, 1], padding='VALID'))
         DCL1 = tf.nn.elu(DCL1)
         p = tf.pad(tensor=DCL1,
                    paddings=[[0, 0], [4, 4], [4, 4], [0, 0]],
                    mode="REFLECT")
-        DCL2 = layers.conv2d(p,
-                             256, [3, 3],
-                             rate=4,
-                             stride=[1, 1],
-                             padding='VALID',
-                             activation_fn=None)
+        DCL2 = tf.nn.elu(tf.nn.conv2d(p, 256, [1, 15, 15, 1], padding='VALID'))
         DCL2 = tf.nn.elu(DCL2)
         p = tf.pad(tensor=DCL2,
                    paddings=[[0, 0], [8, 8], [8, 8], [0, 0]],
                    mode="REFLECT")
-        DCL3 = layers.conv2d(p,
-                             256, [3, 3],
-                             rate=8,
-                             stride=[1, 1],
-                             padding='VALID',
-                             activation_fn=None)
+        DCL3 = tf.nn.elu(tf.nn.conv2d(p, 256, [1, 31, 31, 1], padding='VALID'))
         DCL3 = tf.nn.elu(DCL3)
         p = tf.pad(tensor=DCL3,
                    paddings=[[0, 0], [16, 16], [16, 16], [0, 0]],
                    mode="REFLECT")
-        DCL4 = layers.conv2d(p,
-                             256, [3, 3],
-                             rate=16,
-                             stride=[1, 1],
-                             padding='VALID',
-                             activation_fn=None)
+        DCL4 = tf.nn.elu(tf.nn.conv2d(p, 256, [1, 63, 63, 1], padding='VALID'))
         DCL4 = tf.nn.elu(DCL4)  # 32 32 128
         return DCL4
 
@@ -139,11 +87,7 @@ def decoder(input, size1, size2, reuse, name):
         DL2 = conv_nn(DL1, 64, 64, int(size1 / 2), int(size2 / 2))
         DL3 = conv_nn(DL2, 32, 32, int(size1), int(size2))
         DL4 = conv_nn(DL3, 16, 16, int(size1), int(size2))
-        LL2 = layers.conv2d(DL4,
-                            3, [3, 3],
-                            stride=[1, 1],
-                            padding='SAME',
-                            activation_fn=None)  # 256 256 3
+        LL2 = tf.nn.elu(tf.nn.conv2d(DL4, 3, [1, 1, 1, 1], padding='VALID'))
         LL2 = tf.clip_by_value(LL2, -1.0, 1.0)
         return LL2
 
@@ -157,40 +101,24 @@ def discriminator_G(input, reuse, name):
         p = tf.pad(tensor=input,
                    paddings=[[0, 0], [2, 2], [2, 2], [0, 0]],
                    mode="REFLECT")
-        L1 = layers.conv2d(p,
-                           64, [5, 5],
-                           stride=2,
-                           padding='VALID',
-                           activation_fn=None)
+        L1 = tf.nn.elu(tf.nn.conv2d(p, 64, [1, 5, 5, 1], padding='VALID'))
         L1 = tf.nn.leaky_relu(L1)
         p = tf.pad(tensor=L1,
                    paddings=[[0, 0], [2, 2], [2, 2], [0, 0]],
                    mode="REFLECT")
-        L2 = layers.conv2d(p,
-                           128, [5, 5],
-                           stride=2,
-                           padding='VALID',
-                           activation_fn=None)
+        L2 = tf.nn.elu(tf.nn.conv2d(p, 128, [1, 5, 5, 1], padding='VALID'))
         L2 = tf.nn.leaky_relu(L2)
         p = tf.pad(tensor=L2,
                    paddings=[[0, 0], [2, 2], [2, 2], [0, 0]],
                    mode="REFLECT")
-        L3 = layers.conv2d(p,
-                           256, [5, 5],
-                           stride=2,
-                           padding='VALID',
-                           activation_fn=None)
+        L3 = tf.nn.elu(tf.nn.conv2d(p, 256, [1, 5, 5, 1], padding='VALID'))
         L3 = tf.nn.leaky_relu(L3)
         p = tf.pad(tensor=L3,
                    paddings=[[0, 0], [2, 2], [2, 2], [0, 0]],
                    mode="REFLECT")
-        L4 = layers.conv2d(p,
-                           256, [5, 5],
-                           stride=2,
-                           padding='VALID',
-                           activation_fn=None)
+        L4 = tf.nn.elu(tf.nn.conv2d(p, 512, [1, 5, 5, 1], padding='VALID'))
         L4 = tf.nn.leaky_relu(L4)
-        L4 = layers.flatten(L4)
+        L4 = tf.reshape(L4, [-1, 512])
         L5 = tf.compat.v1.layers.dense(L4, 1)
         return L5
 
@@ -204,40 +132,24 @@ def discriminator_L(input, reuse, name):
         p = tf.pad(tensor=input,
                    paddings=[[0, 0], [2, 2], [2, 2], [0, 0]],
                    mode="REFLECT")
-        L1 = layers.conv2d(p,
-                           64, [5, 5],
-                           stride=2,
-                           padding='VALID',
-                           activation_fn=None)
+        L1 = tf.nn.elu(tf.nn.conv2d(p, 64, [1, 5, 5, 1], padding='VALID'))
         L1 = tf.nn.leaky_relu(L1)  # 32 32 64
         p = tf.pad(tensor=L1,
                    paddings=[[0, 0], [2, 2], [2, 2], [0, 0]],
                    mode="REFLECT")
-        L2 = layers.conv2d(p,
-                           128, [5, 5],
-                           stride=2,
-                           padding='VALID',
-                           activation_fn=None)
+        L2 = tf.nn.elu(tf.nn.conv2d(p, 128, [1, 5, 5, 1], padding='VALID'))
         L2 = tf.nn.leaky_relu(L2)  # 16 16 128
         p = tf.pad(tensor=L2,
                    paddings=[[0, 0], [2, 2], [2, 2], [0, 0]],
                    mode="REFLECT")
-        L3 = layers.conv2d(p,
-                           256, [5, 5],
-                           stride=2,
-                           padding='VALID',
-                           activation_fn=None)
+        L3 = tf.nn.elu(tf.nn.conv2d(p, 256, [1, 5, 5, 1], padding='VALID'))
         L3 = tf.nn.leaky_relu(L3)  # 8 8 256
         p = tf.pad(tensor=L3,
                    paddings=[[0, 0], [2, 2], [2, 2], [0, 0]],
                    mode="REFLECT")
-        L4 = layers.conv2d(p,
-                           512, [5, 5],
-                           stride=2,
-                           padding='VALID',
-                           activation_fn=None)
+        L4 = tf.nn.elu(tf.nn.conv2d(p, 512, [1, 5, 5, 1], padding='VALID'))
         L4 = tf.nn.leaky_relu(L4)  # 4 4 512
-        L4 = layers.flatten(L4)
+        L4 = tf.reshape(L4, [-1, 512])
         L5 = tf.compat.v1.layers.dense(L4, 1)
         return L5
 
@@ -324,12 +236,8 @@ def contextual_block(bg_in, fg_in, mask, k_size, lamda, name, stride=1):
                 ACL = tf.concat((ACL, ACLt), 0)
         ACL = bg + ACL * (1.0 - mask_r)
         con1 = tf.concat([bg_in, ACL], 3)
-        ACL2 = layers.conv2d(con1,
-                             dims, [1, 1],
-                             stride=[1, 1],
-                             padding='VALID',
-                             activation_fn=None,
-                             scope='ML')
+        convolution=convolution_SN(con1, dims, 3, 1, 'convolution')
+        ACL2 = tf.nn.leaky_relu(convolution(con1, 256, 3, 1, 'l1'))
         ACL2 = tf.nn.elu(ACL2)
         return ACL2
 
