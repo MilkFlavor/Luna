@@ -126,8 +126,7 @@ class Detector():
             self.model.load_weights(self.weights_path, by_name=True)
             info("Weights loaded")
         except Exception as e:
-            info("ERROR in load_weights: Model Load. Ensure you have your weights.h5 file!"
-                end=' ')
+            info("ERROR in load_weights: Model Load. Ensure you have your weights.h5 file!")
             info(e)
 
     """Apply cover over image. Based off of Mask-RCNN Balloon color splash function

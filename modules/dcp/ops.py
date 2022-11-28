@@ -4,7 +4,6 @@ import random as rr
 import cv2
 import numpy as np
 import tensorflow as tf
-import tf_slim as layers
 
 
 def instance_norm(input, name="instance_norm"):
@@ -176,7 +175,7 @@ def convolution_SN(tensor, output_dim, kernel_size, stride, name):
     w = tf.compat.v1.get_variable(
         name=name + 'w',
         shape=[kernel_size, kernel_size, c, output_dim],
-        initializer=layers.xavier_initializer())
+        initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.02))
     b = tf.compat.v1.get_variable(name=name + 'b',
                                   shape=[output_dim],
                                   initializer=tf.constant_initializer(0.0))
@@ -191,7 +190,7 @@ def dense_SN(tensor, output_dim, name):
     _, h, w, c = [i.value for i in tensor.get_shape()]
     w = tf.get_variable(name=name + 'w',
                         shape=[h, w, c, output_dim],
-                        initializer=layers.xavier_initializer())
+                        initializer=tf.truncated_normal_initializer(stddev=0.02))
     b = tf.get_variable(name=name + 'b',
                         shape=[output_dim],
                         initializer=tf.constant_initializer(0.0))
@@ -210,7 +209,7 @@ def dense_RED_SN(tensor, name):
     c = int(c)
     weight = tf.compat.v1.get_variable(name=name + '_w',
                                        shape=[h * w, 1, c, 1],
-                                       initializer=layers.xavier_initializer())
+                                       initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.02))
     b = tf.compat.v1.get_variable(name=name + '_b',
                                   shape=[1, h, w, 1],
                                   initializer=tf.constant_initializer(0.0))
