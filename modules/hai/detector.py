@@ -401,7 +401,7 @@ class Detector():
             )
 
     # ESRGAN folder running function
-    def run_ESRGAN(self, in_path=None, is_video=False, force_jpg=True):
+    def run_ESRGAN(self, in_path=None, is_video=False):
         assert in_path
 
         # Parse directory for files.
