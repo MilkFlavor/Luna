@@ -2,26 +2,25 @@ import os
 import shutil
 import sys
 import time
-
+from cv2 import (CAP_PROP_FPS, CAP_PROP_FRAME_COUNT, CAP_PROP_FRAME_HEIGHT,
+                 CAP_PROP_FRAME_WIDTH, INTER_AREA, GaussianBlur, VideoCapture,
+                 VideoWriter, VideoWriter_fourcc, add, erode, multiply, resize)
 import esrgan.test
 import numpy as np
 import skimage.draw
 from logging import INFO, basicConfig, info
 basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
-from cv2 import (CAP_PROP_FPS, CAP_PROP_FRAME_COUNT, CAP_PROP_FRAME_HEIGHT,
-                 CAP_PROP_FRAME_WIDTH, INTER_AREA, GaussianBlur, VideoCapture,
-                 VideoWriter, VideoWriter_fourcc, add, erode, multiply, resize)
-from green_mask_project_mosaic_resolution import get_mosaic_res
+from mask import get_mosaic_res
 from mrcnn import model as modellib
 from mrcnn.config import Config
 
-ROOT_DIR = os.path.abspath("../../")
+root_dir = os.path.abspath("../../")
 
-sys.path.append(ROOT_DIR)
+sys.path.append(root_dir)
 sys.path.append(os.path.join(os.path.abspath('.'), 'esrgan/'))
 
-DEFAULT_LOGS_DIR = os.path.join(ROOT_DIR, "logs")
-WEIGHTS_PATH = os.path.join(ROOT_DIR, "weights.h5")
+DEFAULT_LOGS_DIR = os.path.join(root_dir, "logs")
+WEIGHTS_PATH = os.path.join(root_dir, "weights.h5")
 
 
 # taking this from hentai to avoid import
