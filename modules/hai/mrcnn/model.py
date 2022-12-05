@@ -16,16 +16,6 @@ import keras.models as KM
 import numpy as np
 import tensorflow as tf
 from mrcnn import utils
-
-"""
-Mask R-CNN
-The main Mask R-CNN model implementation.
-
-Copyright (c) 2017 Matterport, Inc.
-Licensed under the MIT License (see LICENSE for details)
-Written by Waleed Abdulla
-"""
-
 import datetime
 from logging import INFO, basicConfig
 basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
