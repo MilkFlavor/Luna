@@ -17,7 +17,7 @@ try:
     info(f"The output folder - {output_path}, has been created!")
 except FileExistsError:
     info(
-        f"The folder {output_path} already exists! All the PNG files will be saved in it!"
+        f"The folder {output_path} already exists! PNGs will be saved in it!"
     )
 
 # Each image in the input folder is made into a .png

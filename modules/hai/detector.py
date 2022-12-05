@@ -1,3 +1,8 @@
+"""
+This script is used to convert the data from the old image format to
+a PNG format by using the Pillow .save function.
+"""
+
 import os
 import shutil
 import sys
