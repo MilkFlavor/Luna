@@ -235,14 +235,11 @@ class Detector():
                 file_name = self.temp_path + img_name[:-4] + '.png'
                 skimage.io.imsave(file_name, mini_img)
             except Exception as e:
-                info(
-                    f"ERROR in resize_GAN: Image read. Skipping. {img_path} {e}")
+                info(f"Image read. Skipping. {img_path} {e}")
                 return
             # Now run ESRGAN inference
             gan_img_path = self.out_path + img_name[:-4] + '.png'
-            self.esrgan_instance.run_esrgan(test_img_folder=file_name,
-                                            out_filename=gan_img_path,
-                                            mosaic_res=granularity)
+            self.esrgan_instance.run_esrgan(file_name, gan_img_path)
         else:
             try:
                 video_path = img_path

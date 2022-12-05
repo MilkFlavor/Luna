@@ -1,3 +1,7 @@
+"""
+This script demonstrates how to build a variational
+autoencoder with Keras and deconvolution layers.
+"""
 import os
 import math
 import multiprocessing
@@ -61,7 +65,7 @@ class BatchNorm(KL.BatchNormalization):
         Note about training values:
             None: Train BN layers. This is the normal mode
             False: Freeze BN layers. Good when batch size is small
-            True: (don't use). Set layer in training mode even when 
+            True: (don't use). Set layer in training mode even when
             making inferences.
         """
         return super(self.__class__, self).call(inputs, training=training)
