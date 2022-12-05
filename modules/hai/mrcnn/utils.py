@@ -7,7 +7,7 @@ Licensed under the MIT License (see LICENSE for details)
 Written by Waleed Abdulla
 """
 
-from logging import INFO, basicConfig, info
+from logging import INFO, basicConfig, warning
 basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
 import math
 import os
@@ -285,7 +285,7 @@ class Dataset(object):
         image_info.update(kwargs)
         self.image_info.append(image_info)
 
-    def image_reference(self, image_id):
+    def image_reference(self):
         """Return a link to the image in its source Website or details about
         the image that help looking it up or debugging it.
 
@@ -294,7 +294,7 @@ class Dataset(object):
         """
         return ""
 
-    def prepare(self, class_map=None):
+    def prepare(self):
         """
         Prepares the Dataset class for use.
         """
@@ -370,7 +370,7 @@ class Dataset(object):
             image = image[..., :3]
         return image
 
-    def load_mask(self, image_id):
+    def load_mask(self):
         """Load instance masks for the given image.
 
         Different datasets use different ways to store masks. Override this
@@ -383,7 +383,7 @@ class Dataset(object):
         """
         # Override this function to load a mask from your dataset.
         # Otherwise, it returns an empty mask.
-        logging.warning(
+        warning(
             "You are using the default load_mask(), maybe you need to define your own one."
         )
         mask = np.empty([0, 0, 0])
@@ -784,12 +784,12 @@ def compute_ap_range(gt_box,
     # Compute AP over range of IoU thresholds
     AP = []
     for iou_threshold in iou_thresholds:
-        ap, precisions, recalls, overlaps =\
+        ap =\
             compute_ap(gt_box, gt_class_id, gt_mask,
                         pred_box, pred_class_id, pred_score, pred_mask,
                         iou_threshold=iou_threshold)
         if verbose:
-            print("AP @{:.2f}:\t {:.3f}".format(iou_threshold, ap))
+            print(f"AP @{iou_threshold}:\t{ap}")
         AP.append(ap)
     AP = np.array(AP).mean()
     if verbose:
