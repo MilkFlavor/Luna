@@ -402,7 +402,7 @@ def resize_image(image,
     max_dim: if provided, ensures that the image longest side doesn"t
         exceed this value.
     min_scale: if provided, ensure that the image is scaled up by at least
-        this percent even if min_dim doesn"t require it.
+        this percent even if min_dim doesn't require it.
     mode: Resizing mode.
         none: No resizing. Return the image unchanged.
         square: Resize and pad with zeros to get a square image
@@ -753,7 +753,7 @@ def compute_ap(gt_boxes,
     precisions = np.concatenate([[0], precisions, [0]])
     recalls = np.concatenate([[0], recalls, [1]])
 
-    # Ensure precision values decrease but don"t increase. This way, the
+    # Ensure precision values decrease but don't increase. This way, the
     # precision value at each recall threshold is the maximum it can be
     # for all following recall thresholds, as specified by the VOC paper.
     for i in range(len(precisions) - 2, -1, -1):

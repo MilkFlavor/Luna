@@ -55,7 +55,7 @@ class BatchNorm(KL.BatchNormalization):
         Note about training values:
             None: Train BN layers. This is the normal mode
             False: Freeze BN layers. Good when batch size is small
-            True: (don"t use). Set layer in training mode even when
+            True: (don't use). Set layer in training mode even when
             making inferences.
         """
         return super(self.__class__, self).call(inputs, training=training)
@@ -414,7 +414,7 @@ class ProposalLayer(tf.keras.layers.Layer):
 
 
 def log2_graph(x):
-    """Implementation of Log2. TF doesn"t have a native implementation."""
+    """Implementation of Log2. TF doesn't have a native implementation."""
     return tf.math.log(x) / tf.math.log(2.0)
 
 
@@ -515,7 +515,7 @@ class PyramidROIAlign(tf.keras.layers.Layer):
 
         # Rearrange pooled features to match the order of the original boxes
         # Sort box_to_level by batch then box index
-        # TF doesn"t have a way to sort by two columns, so merge them and sort.
+        # TF doesn't have a way to sort by two columns, so merge them and sort.
         sorting_tensor = box_to_level[:, 0] * 100000 + box_to_level[:, 1]
         ix = tf.nn.top_k(sorting_tensor,
                          k=tf.shape(input=box_to_level)[0]).indices[::-1]
@@ -544,7 +544,7 @@ def overlaps_graph(boxes1, boxes2):
     """
     # 1. Tile boxes2 and repeat boxes1. This allows us to compare
     # every boxes1 against every boxes2 without loops.
-    # TF doesn"t have an equivalent to np.repeat() so simulate it
+    # TF doesn't have an equivalent to np.repeat() so simulate it
     # using tf.tile() and tf.reshape.
     b1 = tf.reshape(
         tf.tile(tf.expand_dims(boxes1, 1),
@@ -1374,12 +1374,12 @@ def load_image_gt(dataset,
         # Make augmenters deterministic to apply similarly to images and masks
         det = augmentation.to_deterministic()
         image = det.augment_image(image)
-        # Change mask to np.uint8 because imgaug doesn"t support np.bool
+        # Change mask to np.uint8 because imgaug doesn't support np.bool
         mask = det.augment_image(mask.astype(np.uint8),
                                  hooks=imgaug.HooksImages(activator=hook))
-        # Verify that shapes didn"t change
-        assert image.shape == image_shape, "Augmentation shouldn"t change image size"
-        assert mask.shape == mask_shape, "Augmentation shouldn"t change mask size"
+        # Verify that shapes didn't change
+        assert image.shape == image_shape, "Augmentation shouldn't change image size"
+        assert mask.shape == mask_shape, "Augmentation shouldn't change mask size"
         # Change mask back to bool
         mask = mask.astype(np.bool)
 
@@ -1441,8 +1441,8 @@ def build_detection_targets(rpn_rois, gt_class_ids, gt_boxes, gt_masks,
     assert gt_masks.dtype == np.bool_, "Expected bool but got {}".format(
         gt_masks.dtype)
 
-    # It"s common to add GT Boxes to ROIs but we don"t do that here because
-    # according to XinLei Chen"s paper, it doesn"t help.
+    # It"s common to add GT Boxes to ROIs but we don't do that here because
+    # according to XinLei Chen"s paper, it doesn't help.
 
     # Trim empty padding in gt_boxes and gt_masks parts
     instance_ids = np.where(gt_class_ids > 0)[0]
@@ -1494,7 +1494,7 @@ def build_detection_targets(rpn_rois, gt_class_ids, gt_boxes, gt_masks,
     # Need more?
     remaining = config.TRAIN_ROIS_PER_IMAGE - keep.shape[0]
     if remaining > 0:
-        # Looks like we don"t have enough samples to maintain the desired
+        # Looks like we don't have enough samples to maintain the desired
         # balance. Reduce requirements and fill in the rest. This is
         # likely different from the Mask RCNN paper.
 
@@ -1513,7 +1513,7 @@ def build_detection_targets(rpn_rois, gt_class_ids, gt_boxes, gt_masks,
                                               replace=True)
             keep = np.concatenate([keep, keep_extra_ids])
     assert keep.shape[0] == config.TRAIN_ROIS_PER_IMAGE, \
-        "keep doesn"t match ROI batch size {}, {}".format(
+        "keep doesn't match ROI batch size {}, {}".format(
             keep.shape[0], config.TRAIN_ROIS_PER_IMAGE)
 
     # Reset the gt boxes assigned to BG ROIs.
