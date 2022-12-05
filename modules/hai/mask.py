@@ -22,7 +22,7 @@ def get_mosaic_res(root_img=None):
     for masksize in range(HighRange + 2, LowRange + 1, -1):
         maskimg = 2 + masksize + masksize - 1 + 2
         screen = (maskimg, maskimg)
-        img = Image.new('RGB', screen, (255, 255, 255))
+        img = Image.new("RGB", screen, (255, 255, 255))
         pix = img.load()
         for i in range(2, maskimg, masksize - 1):
             for j in range(2, maskimg, masksize - 1):

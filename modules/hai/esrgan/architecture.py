@@ -6,8 +6,8 @@ from . import block as B
 
 
 class RRDB_Net(nn.Module):
-    def __init__(self, in_nc, out_nc, nf, nb, gc=32, upscale=4, norm_type=None, act_type='leakyrelu', \
-            mode='CNA', upsample_mode='upconv'):
+    def __init__(self, in_nc, out_nc, nf, nb, gc=32, upscale=4, norm_type=None, act_type="leakyrelu", \
+            mode="CNA", upsample_mode="upconv"):
         super(RRDB_Net, self).__init__()
         n_upscale = int(math.log(upscale, 2))
         if upscale == 3:
@@ -18,8 +18,8 @@ class RRDB_Net(nn.Module):
                                 kernel_size=3,
                                 norm_type=None,
                                 act_type=None)
-        rb_blocks = [B.RRDB(nf, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero', \
-            norm_type=norm_type, act_type=act_type, mode='CNA') for _ in range(nb)]
+        rb_blocks = [B.RRDB(nf, kernel_size=3, gc=32, stride=1, bias=True, pad_type="zero", \
+            norm_type=norm_type, act_type=act_type, mode="CNA") for _ in range(nb)]
         LR_conv = B.conv_block(nf,
                                nf,
                                kernel_size=3,
@@ -27,13 +27,13 @@ class RRDB_Net(nn.Module):
                                act_type=None,
                                mode=mode)
 
-        if upsample_mode == 'upconv':
+        if upsample_mode == "upconv":
             upsample_block = B.upconv_blcok
-        elif upsample_mode == 'pixelshuffle':
+        elif upsample_mode == "pixelshuffle":
             upsample_block = B.pixelshuffle_block
         else:
             raise NotImplementedError(
-                f'Upsample mode {upsample_mode} is not found')
+                f"Upsample mode {upsample_mode} is not found")
         if upscale == 3:
             upsampler = upsample_block(nf, nf, 3, act_type=act_type)
         else:

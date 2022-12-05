@@ -13,7 +13,6 @@ import math
 import os
 import random
 import shutil
-import sys
 import urllib.request
 import warnings
 from distutils.version import LooseVersion
@@ -63,7 +62,7 @@ def compute_iou(box, boxes, box_area, boxes_area):
     """Calculates IoU of the given box with the array of the given boxes.
     box: 1D vector [y1, x1, y2, x2]
     boxes: [boxes_count, (y1, x1, y2, x2)]
-    box_area: float. the area of 'box'
+    box_area: float. the area of "box"
     boxes_area: array of length boxes_count.
 
     Note: the areas are passed in rather than calculated here for
@@ -266,7 +265,7 @@ class Dataset(object):
         assert "." not in source, "Source name cannot contain a dot"
         # Does the class exist already?
         for info in self.class_info:
-            if info['source'] == source and info["id"] == class_id:
+            if info["source"] == source and info["id"] == class_id:
                 # source.class_id combination already available, skip
                 return
         # Add the class
@@ -312,16 +311,16 @@ class Dataset(object):
 
         # Mapping from source class and image IDs to internal IDs
         self.class_from_source_map = {
-            "{}.{}".format(info['source'], info['id']): id
+            "{}.{}".format(info["source"], info["id"]): id
             for info, id in zip(self.class_info, self.class_ids)
         }
         self.image_from_source_map = {
-            "{}.{}".format(info['source'], info['id']): id
+            "{}.{}".format(info["source"], info["id"]): id
             for info, id in zip(self.image_info, self.image_ids)
         }
 
         # Map sources to class_ids they support
-        self.sources = list(set([i['source'] for i in self.class_info]))
+        self.sources = list(set([i["source"] for i in self.class_info]))
         self.source_class_ids = {}
         # Loop over datasets
         for source in self.sources:
@@ -329,7 +328,7 @@ class Dataset(object):
             # Find classes that belong to this dataset
             for i, info in enumerate(self.class_info):
                 # Include BG class in all datasets
-                if i == 0 or source == info['source']:
+                if i == 0 or source == info["source"]:
                     self.source_class_ids[source].append(i)
 
     def map_source_class_id(self, source_class_id):
@@ -343,8 +342,8 @@ class Dataset(object):
     def get_source_class_id(self, class_id, source):
         """Map an internal class ID to the corresponding class ID in the source dataset."""
         info = self.class_info[class_id]
-        assert info['source'] == source
-        return info['id']
+        assert info["source"] == source
+        return info["id"]
 
     @property
     def image_ids(self):
@@ -352,7 +351,7 @@ class Dataset(object):
 
     def source_image_link(self, image_id):
         """Returns the path or URL to the image.
-        Override this to return a URL to the image if it's available online for easy
+        Override this to return a URL to the image if it"s available online for easy
         debugging.
         """
         return self.image_info[image_id]["path"]
@@ -361,7 +360,7 @@ class Dataset(object):
         """Load the specified image and return a [H,W,3] Numpy array.
         """
         # Load image
-        image = skimage.io.imread(self.image_info[image_id]['path'])
+        image = skimage.io.imread(self.image_info[image_id]["path"])
         # If grayscale. Convert to RGB for consistency.
         if image.ndim != 3:
             image = skimage.color.gray2rgb(image)
@@ -398,12 +397,12 @@ def resize_image(image,
                  mode="square"):
     """Resizes an image keeping the aspect ratio unchanged.
 
-    min_dim: if provided, resizes the image such that it's smaller
+    min_dim: if provided, resizes the image such that it"s smaller
         dimension == min_dim
-    max_dim: if provided, ensures that the image longest side doesn't
+    max_dim: if provided, ensures that the image longest side doesn"t
         exceed this value.
     min_scale: if provided, ensure that the image is scaled up by at least
-        this percent even if min_dim doesn't require it.
+        this percent even if min_dim doesn"t require it.
     mode: Resizing mode.
         none: No resizing. Return the image unchanged.
         square: Resize and pad with zeros to get a square image
@@ -466,7 +465,7 @@ def resize_image(image,
         left_pad = (max_dim - w) // 2
         right_pad = max_dim - w - left_pad
         padding = [(top_pad, bottom_pad), (left_pad, right_pad), (0, 0)]
-        image = np.pad(image, padding, mode='constant', constant_values=0)
+        image = np.pad(image, padding, mode="constant", constant_values=0)
         window = (top_pad, left_pad, h + top_pad, w + left_pad)
     elif mode == "pad64":
         h, w = image.shape[:2]
@@ -487,7 +486,7 @@ def resize_image(image,
         else:
             left_pad = right_pad = 0
         padding = [(top_pad, bottom_pad), (left_pad, right_pad), (0, 0)]
-        image = np.pad(image, padding, mode='constant', constant_values=0)
+        image = np.pad(image, padding, mode="constant", constant_values=0)
         window = (top_pad, left_pad, h + top_pad, w + left_pad)
     elif mode == "crop":
         # Pick a random crop
@@ -520,7 +519,7 @@ def resize_mask(mask, scale, padding, crop=None):
         y, x, h, w = crop
         mask = mask[y:y + h, x:x + w]
     else:
-        mask = np.pad(mask, padding, mode='constant', constant_values=0)
+        mask = np.pad(mask, padding, mode="constant", constant_values=0)
     return mask
 
 
@@ -652,7 +651,7 @@ def generate_pyramid_anchors(scales, ratios, feature_shapes, feature_strides,
 
 
 def trim_zeros(x):
-    """It's common to have tensors larger than the available data and
+    """It"s common to have tensors larger than the available data and
     pad with zeros. This function removes rows that are all zeros.
 
     x: [rows, columns].
@@ -754,7 +753,7 @@ def compute_ap(gt_boxes,
     precisions = np.concatenate([[0], precisions, [0]])
     recalls = np.concatenate([[0], recalls, [1]])
 
-    # Ensure precision values decrease but don't increase. This way, the
+    # Ensure precision values decrease but don"t increase. This way, the
     # precision value at each recall threshold is the maximum it can be
     # for all following recall thresholds, as specified by the VOC paper.
     for i in range(len(precisions) - 2, -1, -1):
@@ -799,7 +798,7 @@ def compute_ap_range(gt_box,
 
 
 def compute_recall(pred_boxes, gt_boxes, iou):
-    """Compute the recall at the given IoU threshold. It's an indication
+    """Compute the recall at the given IoU threshold. It"s an indication
     of how many GT boxes were found by the given prediction boxes.
 
     pred_boxes: [N, (y1, x1, y2, x2)] in image coordinates
@@ -821,7 +820,7 @@ def compute_recall(pred_boxes, gt_boxes, iou):
 # to support batches greater than 1. This function slices an input tensor
 # across the batch dimension and feeds batches of size 1. Effectively,
 # an easy way to support batches > 1 quickly with little code modification.
-# In the long run, it's more efficient to modify the code to support large
+# In the long run, it"s more efficient to modify the code to support large
 # batches and getting rid of this function. Consider this a temporary solution
 def batch_slice(inputs, graph_fn, batch_size, names=None):
     """Splits inputs into slices and feeds each slice to a copy of the given
@@ -830,7 +829,7 @@ def batch_slice(inputs, graph_fn, batch_size, names=None):
     instance only.
 
     inputs: list of tensors. All must have the same first dimension length
-    graph_fn: A function that returns a TF tensor that's part of a graph.
+    graph_fn: A function that returns a TF tensor that"s part of a graph.
     batch_size: number of slices to divide the data into.
     names: If provided, assigns names to the resulting tensors.
     """
@@ -867,7 +866,7 @@ def download_trained_weights(coco_model_path, verbose=1):
     if verbose > 0:
         print("Downloading pretrained model to " + coco_model_path + " ...")
     with urllib.request.urlopen(COCO_MODEL_URL) as resp, open(
-            coco_model_path, 'wb') as out:
+            coco_model_path, "wb") as out:
         shutil.copyfileobj(resp, out)
     if verbose > 0:
         print("... done downloading pretrained model!")
@@ -879,7 +878,7 @@ def norm_boxes(boxes, shape):
     shape: [..., (height, width)] in pixels
 
     Note: In pixel coordinates (y2, x2) is outside the box. But in normalized
-    coordinates it's inside the box.
+    coordinates it"s inside the box.
 
     Returns:
         [N, (y1, x1, y2, x2)] in normalized coordinates
@@ -896,7 +895,7 @@ def denorm_boxes(boxes, shape):
     shape: [..., (height, width)] in pixels
 
     Note: In pixel coordinates (y2, x2) is outside the box. But in normalized
-    coordinates it's inside the box.
+    coordinates it"s inside the box.
 
     Returns:
         [N, (y1, x1, y2, x2)] in pixel coordinates
@@ -910,7 +909,7 @@ def denorm_boxes(boxes, shape):
 def resize(image,
            output_shape,
            order=1,
-           mode='constant',
+           mode="constant",
            cval=0,
            clip=True,
            preserve_range=False,
@@ -918,7 +917,7 @@ def resize(image,
            anti_aliasing_sigma=None):
     """A wrapper for Scikit-Image resize().
 
-    Scikit-Image generates warnings on every call to resize() if it doesn't
+    Scikit-Image generates warnings on every call to resize() if it doesn"t
     receive the right parameters. The right parameters depend on the version
     of skimage. This solves the problem by using different parameters per
     version. And it provides a central place to control resizing defaults.

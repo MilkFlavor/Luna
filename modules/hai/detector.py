@@ -22,7 +22,7 @@ from mrcnn.config import Config
 root_dir = os.path.abspath("../../")
 
 sys.path.append(root_dir)
-sys.path.append(os.path.join(os.path.abspath('.'), 'esrgan/'))
+sys.path.append(os.path.join(os.path.abspath("."), "esrgan/"))
 
 DEFAULT_LOGS_DIR = os.path.join(root_dir, "logs")
 WEIGHTS_PATH = os.path.join(root_dir, "weights.h5")
@@ -56,7 +56,7 @@ class Detector():
     def __init__(self, weights_path):
 
         class InferenceConfig(HentaiConfig):
-            # Set batch size to 1 since we'll be running inference on
+            # Set batch size to 1 since we"ll be running inference on
             # one image at a time. Batch size = GPU_COUNT * IMAGES_PER_GPU
             GPU_COUNT = 1
             IMAGES_PER_GPU = 1
@@ -71,33 +71,33 @@ class Detector():
                                        config=self.config,
                                        model_dir=DEFAULT_LOGS_DIR)
         try:
-            self.out_path = os.path.join(os.path.abspath('.'),
+            self.out_path = os.path.join(os.path.abspath("."),
                                          "ESR_temp/ESR_out/")
-            self.out_path2 = os.path.join(os.path.abspath('.'),
+            self.out_path2 = os.path.join(os.path.abspath("."),
                                           "ESR_temp/ESR_out2/")
-            self.temp_path = os.path.join(os.path.abspath('.'),
+            self.temp_path = os.path.join(os.path.abspath("."),
                                           "ESR_temp/temp/")
-            self.temp_path2 = os.path.join(os.path.abspath('.'),
+            self.temp_path2 = os.path.join(os.path.abspath("."),
                                            "ESR_temp/temp2/")
-            self.fin_path = os.path.join(os.path.abspath('.'), "ESR_output/")
+            self.fin_path = os.path.join(os.path.abspath("."), "ESR_output/")
         except:
             info(
                 "ERROR in Detector init: Cannot find ESR_out or some dir within")
             return
         # Create esrgan instance for detector instance
         try:
-            self.esr_model_path = os.path.join(os.path.abspath('.'),
+            self.esr_model_path = os.path.join(os.path.abspath("."),
                                                "4x_FatalPixels_340000_G.pth")
         except:
             info(
                 "ERROR in Detector init: ESRGAN model not found, make sure you have 4x_FatalPixels_340000_G.pth in this directory")
             return
         # Scan for cuda compatible GPU for ESRGAN. Mask-RCNN *should* automatically use a GPU if available.
-        self.hardware = 'cpu'
+        self.hardware = "cpu"
         if self.model.check_cuda_gpu() == True:
             # print("CUDA-compatible GPU located! ****DEBUG CPU MODE****")
             info("CUDA-compatible GPU located!")
-            self.hardware = 'cuda'
+            self.hardware = "cuda"
         # destroy model. Will re init during weight load.
         self.model = []
 
@@ -117,12 +117,12 @@ class Detector():
                         shutil.rmtree(file_path)
                 except Exception as e:
                     info(
-                        'ERROR in clean_work_dirs: Failed to delete %s. Reason: %s'
+                        "ERROR in clean_work_dirs: Failed to delete %s. Reason: %s"
                         % (file_path, e))
 
     # Make sure this is called before using model weights
     def load_weights(self):
-        info('Creating model, Loading weights...')
+        info("Creating model, Loading weights...")
         self.model = modellib.MaskRCNN(mode="inference",
                                        config=self.config,
                                        model_dir=DEFAULT_LOGS_DIR)
@@ -146,21 +146,21 @@ class Detector():
         green[:, :] = [0, 255, 0]
 
         if mask.shape[-1] > 0:
-            # We're treating all instances as one, so collapse the mask into one layer
+            # We"re treating all instances as one, so collapse the mask into one layer
             mask = (np.sum(mask, -1, keepdims=True) < 1)
             # dilate mask to ensure proper coverage
-            mimg = mask.astype('uint8') * 255
+            mimg = mask.astype("uint8") * 255
             kernel = np.ones((dilation, dilation), np.uint8)
-            mimg = erode(src=mask.astype('uint8'), kernel=kernel,
+            mimg = erode(src=mask.astype("uint8"), kernel=kernel,
                          iterations=1)  #
             # dilation returns image with channels stripped (?!?). Reconstruct image channels
             mask_img = np.zeros([mask.shape[0], mask.shape[1],
-                                 3]).astype('bool')
-            mask_img[:, :, 0] = mimg.astype('bool')
-            mask_img[:, :, 1] = mimg.astype('bool')
-            mask_img[:, :, 2] = mimg.astype('bool')
+                                 3]).astype("bool")
+            mask_img[:, :, 0] = mimg.astype("bool")
+            mask_img[:, :, 1] = mimg.astype("bool")
+            mask_img[:, :, 2] = mimg.astype("bool")
 
-            cover = np.where(mask_img.astype('bool'), image,
+            cover = np.where(mask_img.astype("bool"), image,
                              green).astype(np.uint8)
         else:
             # error case, return image
@@ -172,9 +172,9 @@ class Detector():
         if mask.shape[-1] > 0:
             mask = (np.sum(mask, -1, keepdims=True) < 1)
             mask = 1 - mask  # invert mask for blending
-            mask = mask.astype('uint8') * 255
+            mask = mask.astype("uint8") * 255
             mask = GaussianBlur(mask, (29, 29), 0)
-            # mask_img = np.zeros([mask.shape[0], mask.shape[1],3]).astype('uint8')
+            # mask_img = np.zeros([mask.shape[0], mask.shape[1],3]).astype("uint8")
             # for i in range(3):
             #     mask_img[:,:,i] = mask
             mask_img = mask.astype(float) / 255
@@ -232,13 +232,13 @@ class Detector():
                                   interpolation=INTER_AREA
                                   )  # TODO: experiment with interpolations
                 # After resize, run bilateral filter to keep colors coherent
-                file_name = self.temp_path + img_name[:-4] + '.png'
+                file_name = self.temp_path + img_name[:-4] + ".png"
                 skimage.io.imsave(file_name, mini_img)
             except Exception as e:
                 info(f"Image read. Skipping. {img_path} {e}")
                 return
             # Now run ESRGAN inference
-            gan_img_path = self.out_path + img_name[:-4] + '.png'
+            gan_img_path = self.out_path + img_name[:-4] + ".png"
             self.esrgan_instance.run_esrgan(file_name, gan_img_path)
         else:
             try:
@@ -267,7 +267,7 @@ class Detector():
                         np.array(image)
                     )  # pass np array of image as ref to gmp function
                     if granularity < 10:  #TODO: implement adaptive granularity by weighted changes
-                        print('Granularity was less than threshold at ',
+                        print("Granularity was less than threshold at ",
                               granularity)
                         granularity = 10
 
@@ -277,14 +277,14 @@ class Detector():
                                 int(image.shape[0] / granularity)),
                         interpolation=INTER_AREA)  # downscale to 1/16
                     # bil2 = bilateralFilter(mini_img, 3, 70, 70)
-                    file_name = self.temp_path + img_name[:-4] + '.png'  # need to save a sequence of pngs for TGAN operation
+                    file_name = self.temp_path + img_name[:-4] + ".png"  # need to save a sequence of pngs for TGAN operation
                     skimage.io.imsave(
                         file_name, mini_img
                     )  # save resized images to temp path. Not used in main ESRGAN function below.
 
                     # run ESRGAN algorithms
                     gan_img_path = self.out_path + img_name[:-4] + str(
-                        count).zfill(6) + '.png'
+                        count).zfill(6) + ".png"
                     self.esrgan_instance.run_esrgan(test_img_folder=file_name,
                                                     out_filename=gan_img_path,
                                                     mosaic_res=granularity)
@@ -293,7 +293,7 @@ class Detector():
                     gan_image = resize(gan_image,
                                        (image.shape[1], image.shape[0]))
                     count += 1
-            print('Video: Phase 1 complete!')
+            print("Video: Phase 1 complete!")
 
     # Runs hent-AI detection and splice. Mosaic only.
     def ESRGAN(self, img_path, img_name, is_video=False):
@@ -320,18 +320,18 @@ class Detector():
             if len(r["scores"]) == 0:
                 print("Skipping image with no detection")
                 return
-            remove_indices = np.where(r['class_ids'] != 2)
-            new_masks = np.delete(r['masks'], remove_indices, axis=2)
+            remove_indices = np.where(r["class_ids"] != 2)
+            new_masks = np.delete(r["masks"], remove_indices, axis=2)
 
             # load image from esrgan
-            gan_img_path = self.out_path + img_name[:-4] + '.png'
+            gan_img_path = self.out_path + img_name[:-4] + ".png"
             gan_image = skimage.io.imread(gan_img_path)
             gan_image = resize(gan_image, (image.shape[1], image.shape[0]))
             # Splice newly enhanced mosaic area over original image
             fin_img = self.splice(image, new_masks, gan_image)
             try:
                 # Save output, now force save as png
-                file_name = self.fin_path + img_name[:-4] + '.png'
+                file_name = self.fin_path + img_name[:-4] + ".png"
                 skimage.io.imsave(file_name, fin_img)
             except Exception as e:
                 print("ERROR in ESRGAN: Image write. Skipping. image_path=",
@@ -348,7 +348,7 @@ class Detector():
 
                 # Create video in source directory with different name
                 file_name = img_path[:-4] + "_decensored.mp4"
-                vwriter = VideoWriter(file_name, VideoWriter_fourcc(*'mp4v'),
+                vwriter = VideoWriter(file_name, VideoWriter_fourcc(*"mp4v"),
                                       fps, (width, height))
             except Exception as e:
                 print("ERROR in ESRGAN: video read and init.", e)
@@ -379,11 +379,11 @@ class Detector():
 
                     # Remove unwanted class, code from https://github.com/matterport/Mask_RCNN/issues/1666
                     remove_indices = np.where(
-                        r['class_ids'] != 2)  # remove bars: class 1
-                    new_masks = np.delete(r['masks'], remove_indices, axis=2)
+                        r["class_ids"] != 2)  # remove bars: class 1
+                    new_masks = np.delete(r["masks"], remove_indices, axis=2)
 
                     gan_img_path = self.out_path + img_name[:-4] + str(
-                        count).zfill(6) + '.png'
+                        count).zfill(6) + ".png"
                     gan_image = skimage.io.imread(gan_img_path)
                     gan_image = resize(gan_image,
                                        (image.shape[1], image.shape[0]))
@@ -399,7 +399,7 @@ class Detector():
 
             vwriter.release()
             print(
-                'Video: Phase 2 complete! Attempting to create a copy with audio included...'
+                "Video: Phase 2 complete! Attempting to create a copy with audio included..."
             )
 
     # ESRGAN folder running function
@@ -410,11 +410,11 @@ class Detector():
         img_list = []
         for file in os.listdir(in_path):
             try:
-                if file.endswith('.png') or file.endswith(
-                        '.PNG') or file.endswith(".jpg") or file.endswith(
+                if file.endswith(".png") or file.endswith(
+                        ".PNG") or file.endswith(".jpg") or file.endswith(
                             ".JPG") or file.endswith(".mp4") or file.endswith(
                                 ".avi"):
-                    img_list.append((in_path + '/' + file, file))
+                    img_list.append((in_path + "/" + file, file))
             except Exception as e:
                 print("ERROR in run_ESRGAN: File parsing. file=", file, e)
         # begin ESRGAN on every image. Create esrgan instance too.
@@ -441,7 +441,7 @@ class Detector():
         self.clean_work_dirs(
         )  #NOTE: DISABLE ME if you want to keep the images in the working dirs
 
-    def video_create(self, image_path=None, dcp_path=''):
+    def video_create(self, image_path=None, dcp_path=""):
         assert image_path
         # Video capture to get shapes and stats
         vid_list = []
@@ -452,8 +452,8 @@ class Detector():
                     "WARNING: More than 1 video in input directory! Assuming you want the first video."
                 )
                 break
-            if file_s.endswith('mp4') or file_s.endswith('MP4'):
-                vid_list.append(image_path + '/' + file_s)
+            if file_s.endswith("mp4") or file_s.endswith("MP4"):
+                vid_list.append(image_path + "/" + file_s)
 
         video_path = vid_list[0]  # ONLY works with 1 video for now
         vcapture = VideoCapture(video_path)
@@ -462,21 +462,21 @@ class Detector():
         fps = vcapture.get(CAP_PROP_FPS)
 
         # Define codec and create video writer, video output is purely for debugging and educational purpose. Not used in decensoring.
-        file_name = str(file)[:-4] + '_decensored.mp4'
-        vwriter = VideoWriter(file_name, VideoWriter_fourcc(*'mp4v'), fps,
+        file_name = str(file)[:-4] + "_decensored.mp4"
+        vwriter = VideoWriter(file_name, VideoWriter_fourcc(*"mp4v"), fps,
                               (width, height))
         count = 0
         print(
             "Beginning build. Do ensure only relevant images are in source directory"
         )
-        input_path = dcp_path + '/output/'
+        input_path = dcp_path + "/output/"
         img_list = []
 
         for file in os.listdir(input_path):
             file_s = str(file)
-            if file_s.endswith('.png') or file_s.endswith('.PNG'):
+            if file_s.endswith(".png") or file_s.endswith(".PNG"):
                 img_list.append(input_path + file_s)
-                # print('adding image ', input_path  + file_s)
+                # print("adding image ", input_path  + file_s)
         for img in img_list:
             print("frame: ", count)
             # Read next image
@@ -489,7 +489,7 @@ class Detector():
 
         vwriter.release()
         print(
-            'Video complete! Attempting to create a copy with audio included...'
+            "Video complete! Attempting to create a copy with audio included..."
         )
 
     # save path and orig video folder are both paths, but orig video folder is for original mosaics to be saved.
@@ -498,7 +498,7 @@ class Detector():
     def detect_and_cover(self,
                          image_path=None,
                          fname=None,
-                         save_path='',
+                         save_path="",
                          is_video=False,
                          orig_video_folder=None,
                          force_jpg=False,
@@ -517,7 +517,7 @@ class Detector():
 
             # Define codec and create video writer, video output is purely for debugging and educational purpose. Not used in decensoring.
             file_name = fname + "_with_censor_masks.mp4"
-            vwriter = VideoWriter(file_name, VideoWriter_fourcc(*'mp4v'), fps,
+            vwriter = VideoWriter(file_name, VideoWriter_fourcc(*"mp4v"), fps,
                                   (width, height))
             count = 0
             success = True
@@ -535,8 +535,8 @@ class Detector():
                                     -4]  # if we get this far, we definitely have a .mp4. Remove that, add count and .png ending
                     file_name = orig_video_folder + im_name + str(count).zfill(
                         6
-                    ) + '.png'  # NOTE Should be adequite for having 10^6 frames, which is more than enough for even 30 mintues total.
-                    # print('saving frame as ', file_name)
+                    ) + ".png"  # NOTE Should be adequite for having 10^6 frames, which is more than enough for even 30 mintues total.
+                    # print("saving frame as ", file_name)
                     skimage.io.imsave(file_name, image)
 
                     # Detect objects
@@ -544,16 +544,16 @@ class Detector():
 
                     # Remove unwanted class, code from https://github.com/matterport/Mask_RCNN/issues/1666
                     remove_indices = np.where(
-                        r['class_ids'] != 2)  # remove bars: class 1
-                    new_masks = np.delete(r['masks'], remove_indices, axis=2)
+                        r["class_ids"] != 2)  # remove bars: class 1
+                    new_masks = np.delete(r["masks"], remove_indices, axis=2)
 
                     # Apply cover
                     cov, mask = self.apply_cover(image, new_masks, dilation)
 
                     # save covered frame into input for decensoring path
                     file_name = save_path + im_name + str(count).zfill(
-                        6) + '.png'
-                    # print('saving covered frame as ', file_name)
+                        6) + ".png"
+                    # print("saving covered frame as ", file_name)
                     skimage.io.imsave(file_name, cov)
 
                     # RGB -> BGR to save image to video
@@ -563,7 +563,7 @@ class Detector():
                     count += 1
 
             vwriter.release()
-            print('video complete')
+            print("video complete")
         else:
             # Run on Image
             try:
@@ -580,13 +580,13 @@ class Detector():
                 info(e)
                 return
             # Detect objects
-            '''
+            """
             image_ced = bilateralFilter(image, 3, 70, 70) 
             image_ced =Canny(image=image_ced, threshold1=10, threshold2=42)
             image_ced = 255 - image_ced
             image_ced = cvtColor(image_ced,COLOR_GRAY2RGB)
-            '''
-            # skimage.io.imsave(save_path + fname[:-4] + '_ced' + '.png', image_ced)
+            """
+            # skimage.io.imsave(save_path + fname[:-4] + "_ced" + ".png", image_ced)
             try:
                 # r = self.model.detect([image_ced], verbose=0)[0]
                 r = self.model.detect([image], verbose=0)[0]
@@ -596,18 +596,18 @@ class Detector():
             # Remove unwanted class, code from https://github.com/matterport/Mask_RCNN/issues/1666
             if is_mosaic == True or is_video == True:
                 remove_indices = np.where(
-                    r['class_ids'] != 2)  # remove bars: class 2
+                    r["class_ids"] != 2)  # remove bars: class 2
             else:
                 remove_indices = np.where(
-                    r['class_ids'] != 1)  # remove mosaic: class 1
-            new_masks = np.delete(r['masks'], remove_indices, axis=2)
+                    r["class_ids"] != 1)  # remove mosaic: class 1
+            new_masks = np.delete(r["masks"], remove_indices, axis=2)
             # except:
             #     print("ERROR in detect_and_cover: Model detect")
 
             cov, mask = self.apply_cover(image, new_masks, dilation)
             try:
                 # Save output, now force save as png
-                file_name = save_path + fname[:-4] + '.png'
+                file_name = save_path + fname[:-4] + ".png"
                 skimage.io.imsave(file_name, cov)
             except:
                 info(
@@ -639,9 +639,9 @@ class Detector():
             vid_list = []
             for file in os.listdir(str(input_folder)):
                 file_s = str(file)
-                if file_s.endswith('mp4') or file_s.endswith(
-                        'MP4') or file_s.endswith('avi'):
-                    vid_list.append((input_folder + '/' + file_s, file_s))
+                if file_s.endswith("mp4") or file_s.endswith(
+                        "MP4") or file_s.endswith("avi"):
+                    vid_list.append((input_folder + "/" + file_s, file_s))
 
             for vid_path, vid_name in vid_list:
                 # video will not support separate mask saves
@@ -654,8 +654,8 @@ class Detector():
                                       dilation=dilation)
                 fin = time.perf_counter()
                 total_time = fin - star
-                print('Detection on video', file_counter,
-                      'finished in {:.4f} seconds'.format(total_time))
+                print("Detection on video", file_counter,
+                      "finished in {:.4f} seconds".format(total_time))
                 file_counter += 1
         else:
             # obtain inputs from the input folder
@@ -663,10 +663,10 @@ class Detector():
             for file in os.listdir(str(input_folder)):
                 file_s = str(file)
                 try:
-                    if file_s.endswith('.png') or file_s.endswith(
-                            '.PNG') or file_s.endswith(
+                    if file_s.endswith(".png") or file_s.endswith(
+                            ".PNG") or file_s.endswith(
                                 ".jpg") or file_s.endswith(".JPG"):
-                        img_list.append((input_folder + '/' + file_s, file_s))
+                        img_list.append((input_folder + "/" + file_s, file_s))
                 except:
                     print("ERROR in run_on_folder: File parsing. file=",
                           file_s)
@@ -692,4 +692,4 @@ class Detector():
     def unload_model(self):
         del self.esrgan_instance
         self.model.unload_model()
-        info('Model unload successful!')
+        info("Model unload successful!")

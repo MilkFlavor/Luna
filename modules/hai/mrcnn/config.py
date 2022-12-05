@@ -10,7 +10,7 @@ Written by Waleed Abdulla
 import numpy as np
 
 # Base Configuration Class
-# Don't use this class directly. Instead, sub-class it and override
+# Don"t use this class directly. Instead, sub-class it and override
 # the configurations you need to change.
 
 
@@ -19,7 +19,7 @@ class Config(object):
     sub-class that inherits from this one and override properties
     that need to be changed.
     """
-    # Name the configurations. For example, 'COCO', 'Experiment 3', ...etc.
+    # Name the configurations. For example, "COCO", "Experiment 3", ...etc.
     # Useful if your code needs to do things differently depending on which
     # experiment is running.
     NAME = None  # Override in sub-classes
@@ -34,11 +34,11 @@ class Config(object):
     IMAGES_PER_GPU = 1
 
     # Number of training steps per epoch
-    # This doesn't need to match the size of the training set. Tensorboard
+    # This doesn"t need to match the size of the training set. Tensorboard
     # updates are saved at the end of each epoch, so setting this to a
     # smaller number means getting more frequent TensorBoard updates.
     # Validation stats are also calculated at each epoch end and they
-    # might take a while, so don't set this too small to avoid spending
+    # might take a while, so don"t set this too small to avoid spending
     # a lot of time on validation stats.
     STEPS_PER_EPOCH = 1000
 
@@ -107,7 +107,7 @@ class Config(object):
     # Generally, use the "square" resizing mode for training and predicting
     # and it should work well in most cases. In this mode, images are scaled
     # up such that the small side is = IMAGE_MIN_DIM, but ensuring that the
-    # scaling doesn't make the long side > IMAGE_MAX_DIM. Then the image is
+    # scaling doesn"t make the long side > IMAGE_MAX_DIM. Then the image is
     # padded with zeros to make it a square so multiple images can be put
     # in one batch.
     # Available resizing modes:
@@ -128,8 +128,8 @@ class Config(object):
     IMAGE_MAX_DIM = 1024
     # Minimum scaling ratio. Checked after MIN_IMAGE_DIM and can force further
     # up scaling. For example, if set to 2 then images are scaled up to double
-    # the width and height, or more, even if MIN_IMAGE_DIM doesn't require it.
-    # However, in 'square' mode, it can be overruled by IMAGE_MAX_DIM.
+    # the width and height, or more, even if MIN_IMAGE_DIM doesn"t require it.
+    # However, in "square" mode, it can be overruled by IMAGE_MAX_DIM.
     IMAGE_MIN_SCALE = 0
     # Number of color channels per image. RGB = 3, grayscale = 1, RGB-D = 4
     # Changing this requires other changes in the code. See the WIKI for more
@@ -140,7 +140,7 @@ class Config(object):
     MEAN_PIXEL = np.array([123.7, 116.8, 103.9])
 
     # Number of ROIs per image to feed to classifier/mask heads
-    # The Mask RCNN paper uses 512 but often the RPN doesn't generate
+    # The Mask RCNN paper uses 512 but often the RPN doesn"t generate
     # enough positive proposals to fill this and keep a positive:negative
     # ratio of 1:3. You can increase the number of proposals by adjusting
     # the RPN NMS threshold.
@@ -204,7 +204,7 @@ class Config(object):
     # Train or freeze batch normalization layers
     #     None: Train BN layers. This is the normal mode
     #     False: Freeze BN layers. Good when using a small batch size
-    #     True: (don't use). Set layer in training mode even when predicting
+    #     True: (don"t use). Set layer in training mode even when predicting
     TRAIN_BN = False  # Defaulting to False since batch size is often small
 
     # Gradient norm clipping
