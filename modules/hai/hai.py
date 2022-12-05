@@ -20,7 +20,7 @@ from detector import Detector
 
 versionNumber = "1.6.9"
 weights_path = "weights.h5"
-cfg_path = "hconfig.ini"
+cfg_path = "/content/Luna/hconfig.ini"
 
 info("----- HentAI modified by MilkFlavor -----")
 
