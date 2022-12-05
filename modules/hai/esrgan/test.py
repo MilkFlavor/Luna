@@ -26,8 +26,7 @@ class esrgan():
     # Function to run esrgan on single image, and single output.
     def run_esrgan(self,
                    test_img_folder=None,
-                   out_filename=None,
-                   mosaic_res=1):
+                   out_filename=None):
         assert out_filename
         assert test_img_folder
 
@@ -55,5 +54,5 @@ class esrgan():
         output = np.transpose(output[[2, 1, 0], :, :], (1, 2, 0))
         output = (output * 255.0).round()
         # cv2.imwrite(out_filename, output)
-        is_success, im_buf_arr = cv2.imencode(".png", output)
+        im_buf_arr = cv2.imencode(".png", output)
         im_buf_arr.tofile(out_filename)
