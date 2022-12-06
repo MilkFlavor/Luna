@@ -133,12 +133,6 @@ class Detector():
             info("ERROR in load_weights: Model Load. Ensure you have your weights.h5 file!")
             info(e)
 
-    """Apply cover over image. Based off of Mask-RCNN Balloon color splash function
-    image: RGB image [height, width, 3]
-    mask: instance segmentation mask [height, width, instance count]
-    Returns result covered image.
-    """
-
     def apply_cover(self, image, mask, dilation):
         # Copy color pixels from the original color image where mask is set
         green = np.zeros([image.shape[0], image.shape[1], image.shape[2]],
