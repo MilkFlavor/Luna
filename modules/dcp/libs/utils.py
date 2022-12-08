@@ -128,9 +128,9 @@ def is_right_color(pixel, r2, g2, b2):
     return r1 == r2 and g1 == g2 and b1 == b2
 
 
-if __name__ == "__main__":
-    image = Image.open("")
-    no_alpha_image = image.convert("RGB")
+if __name__ == '__main__':
+    image = Image.open('')
+    no_alpha_image = image.convert('RGB')
     draw = ImageDraw.Draw(no_alpha_image)
     for region in find_regions(no_alpha_image, [0, 255, 0]):
         draw.rectangle(expand_bounding(no_alpha_image, region),

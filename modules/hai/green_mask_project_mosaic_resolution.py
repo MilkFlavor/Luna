@@ -1,7 +1,3 @@
-"""
-This script demonstrates how to build a variational 
-autoencoder with Keras and deconvolution layers.
-"""
 import cv2
 import numpy as np
 from PIL import Image
@@ -22,7 +18,7 @@ def get_mosaic_res(root_img=None):
     for masksize in range(HighRange + 2, LowRange + 1, -1):
         maskimg = 2 + masksize + masksize - 1 + 2
         screen = (maskimg, maskimg)
-        img = Image.new("RGB", screen, (255, 255, 255))
+        img = Image.new('RGB', screen, (255, 255, 255))
         pix = img.load()
         for i in range(2, maskimg, masksize - 1):
             for j in range(2, maskimg, masksize - 1):
@@ -58,10 +54,10 @@ def get_mosaic_res(root_img=None):
         loc = np.where(img_detection >= DetectionTr)
         rects = 0
         for pt in zip(*loc[::-1]):
-            rects += 1  # increase rectangle count of single resolution
-            # cv2.rectangle
-            # (img_rgb, pt, (pt[0] + w, pt[1] + h), (0,255,0), 1)
-            # #DEBUG To see regions on image
+            rects += 1  #increase rectangle count of single resolution
+
+
+#            cv2.rectangle(img_rgb, pt, (pt[0] + w, pt[1] + h), (0,255,0), 1)     #DEBUG To see regions on image
         resolutions[masksize - 1] = rects
 
     resolutions.append(0)
