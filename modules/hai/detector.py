@@ -4,14 +4,13 @@ import sys
 import time
 
 import esrgan.test
-import ffmpeg
 import numpy as np
 import skimage.draw
 from logging import info
 from cv2 import (CAP_PROP_FPS, CAP_PROP_FRAME_COUNT, CAP_PROP_FRAME_HEIGHT,
                  CAP_PROP_FRAME_WIDTH, INTER_AREA, GaussianBlur, VideoCapture,
                  VideoWriter, VideoWriter_fourcc, add, erode, multiply, resize)
-from green_mask_project_mosaic_resolution import get_mosaic_res
+from mask import get_mosaic_res
 from mrcnn import model as modellib
 from mrcnn.config import Config
 
@@ -126,15 +125,8 @@ class Detector():
             self.model.load_weights(self.weights_path, by_name=True)
             info("Weights loaded")
         except Exception as e:
-            info("ERROR in load_weights: Model Load. Ensure you have your weights.h5 file!"
-                end=' ')
+            info("ERROR in load_weights: " + str(e))
             info(e)
-
-    """Apply cover over image. Based off of Mask-RCNN Balloon color splash function
-    image: RGB image [height, width, 3]
-    mask: instance segmentation mask [height, width, instance count]
-    Returns result covered image.
-    """
 
     def apply_cover(self, image, mask, dilation):
         # Copy color pixels from the original color image where mask is set
@@ -398,20 +390,6 @@ class Detector():
                     count += 1
 
             vwriter.release()
-            print(
-                'Video: Phase 2 complete! Attempting to create a copy with audio included...'
-            )
-            try:
-                in_video = ffmpeg.input(img_path[:-4] + "_decensored.mp4")
-                in_audio = ffmpeg.input(img_path)
-                ffmpeg.concat(in_video, in_audio, v=1,
-                              a=1).output(img_path[:-4] + "_decen_audio.mp4",
-                                          video_bitrate='11M').run()
-            except Exception as e:
-                print(
-                    "ERROR in ESRGAN: audio rip. Ensure ffmpeg.exe is in the main directory."
-                )
-                print(e)
 
     # ESRGAN folder running function
     def run_ESRGAN(self, in_path=None, is_video=False, force_jpg=True):
@@ -499,20 +477,6 @@ class Detector():
             count += 1
 
         vwriter.release()
-        print(
-            'Video complete! Attempting to create a copy with audio included...'
-        )
-        try:
-            in_video = ffmpeg.input(file_name)
-            in_audio = ffmpeg.input(video_path)
-            ffmpeg.concat(in_video, in_audio, v=1,
-                          a=1).output(video_path[:-4] + "_decen_audio.mp4",
-                                      video_bitrate='11M').run()
-        except Exception as e:
-            print(
-                "ERROR in video_create: audio rip. Ensure ffmpeg.exe is in the main directory."
-            )
-            print(e)
 
     # save path and orig video folder are both paths, but orig video folder is for original mosaics to be saved.
     # fname = filename.

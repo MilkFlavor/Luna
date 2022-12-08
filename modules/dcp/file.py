@@ -1,7 +1,7 @@
 import os
 
 
-def check_file(input_dir, output_dir, Release_version=True):
+def check_file(input_dir, output_dir, release_version=True):
     file_list = []
     output_file_list = []
     files_removed = []
@@ -13,7 +13,7 @@ def check_file(input_dir, output_dir, Release_version=True):
         if not file_in.startswith('.'):
             file_list.append(file_in)
 
-    if (Release_version is True):
+    if (release_version is True):
         print("\nChecking valid files...")
         for file_out in output_dir:
             if file_out.lower().endswith('.png'):
