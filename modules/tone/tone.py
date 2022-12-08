@@ -11,7 +11,7 @@ from cv2 import GaussianBlur, bilateralFilter, filter2D, imread, imwrite
 from logging import INFO, basicConfig, info
 basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
 
-info('----- ToneRemover modified by MilkFlavor -----')
+info("----- ToneRemover modified by MilkFlavor -----")
 
 
 def blur(img, blur_amount=5):
@@ -33,38 +33,38 @@ def sharp(img, sharp_point, sharp_low):
 
 
 def getfileList(dir):
-    return (i for i in listdir(dir) if i.endswith('.png') or i.endswith('.PNG')
-            or i.endswith('.jpg') or i.endswith('.JPG') or i.endswith('.jpeg'))
+    return (i for i in listdir(dir) if i.endswith(".png") or i.endswith(".PNG")
+            or i.endswith(".jpg") or i.endswith(".JPG") or i.endswith(".jpeg"))
 
 
 def removeScreentones(dir_i, dir_o, blur_amount, sh_point=5.56, sh_low=-1.14):
     if (dir_i == [] or len(dir_i) == 0):
-        info('No input directory')
+        info("No input directory")
     if (dir_o == [] or len(dir_o) == 0):
-        info('No output directory')
+        info("No output directory")
     inputs = list(getfileList(dir_i))
     if (len(inputs) == 0):
-        info('No png file founded')
+        info("No png file founded")
 
-    info('Removing tone')
+    info("Removing tone")
 
     sh_point = float(sh_point)
     sh_low = float(sh_low)
     sharps = (4 * sh_low) + sh_point - 1
     # if(sharps > 0):
     #     popupw = Tk()
-    #     popupw.title('Warning')
-    #     label = Label(popupw, text='Sharpening parameters result is high. Output will brighten')
+    #     popupw.title("Warning")
+    #     label = Label(popupw, text="Sharpening parameters result is high. Output will brighten")
     #     label.pack(side=TOP, fill=X, pady=20)
-    #     okbutton = Button(popupw, text='Ok', command=popupw.destroy)
+    #     okbutton = Button(popupw, text="Ok", command=popupw.destroy)
     #     okbutton.pack()
     #     popupw.mainloop()
     # elif(sharps < 0):
     #     popupw = Tk()
-    #     popupw.title('Warning')
-    #     label = Label(popupw, text='Sharpening parameters result is low. Output will darken')
+    #     popupw.title("Warning")
+    #     label = Label(popupw, text="Sharpening parameters result is low. Output will darken")
     #     label.pack(side=TOP, fill=X, pady=20)
-    #     okbutton = Button(popupw, text='Ok', command=popupw.destroy)
+    #     okbutton = Button(popupw, text="Ok", command=popupw.destroy)
     #     okbutton.pack()
     #     popupw.mainloop()
 
@@ -77,25 +77,25 @@ def removeScreentones(dir_i, dir_o, blur_amount, sh_point=5.56, sh_low=-1.14):
         bs_amount = 7
 
     # loader = Tk()
-    # loader.title('Processing')
-    # load_label = Label(loader, text='Removing Screentones. Please wait')
+    # loader.title("Processing")
+    # load_label = Label(loader, text="Removing Screentones. Please wait")
     # load_label.pack(fill=X, pady=10, padx=20)
     # loader.update()
     for i in inputs:
-        img = imread(dir_i + '/' + i)
+        img = imread(dir_i + "/" + i)
         blurred = blur(img, bs_amount)
         ret = sharp(blurred, sh_point, sh_low)
-        sucess = imwrite(dir_o + '/' + i, ret)
+        sucess = imwrite(dir_o + "/" + i, ret)
         if (sucess != True):
-            info('An error occured')
-    info('ToneRemover has done running')
+            info("An error occured")
+    info("ToneRemover has done running")
 
     # loader.destroy()
     # popup = Tk()
-    # popup.title('Success!')
-    # label = Label(popup, text='Process executed successfully!')
+    # popup.title("Success!")
+    # label = Label(popup, text="Process executed successfully!")
     # label.pack(side=TOP, fill=X, pady=20)
-    # okbutton = Button(popup, text='Ok', command=popup.destroy)
+    # okbutton = Button(popup, text="Ok", command=popup.destroy)
     # okbutton.pack()
     # popup.mainloop()
 
@@ -104,16 +104,16 @@ dtext = ""
 otext = ""
 
 # def dnewdir():
-#     dtext = filedialog.askdirectory(title='Choose directory for input images (.png recommended)')
+#     dtext = filedialog.askdirectory(title="Choose directory for input images (.png recommended)")
 #     dvar.set(dtext)
 
 # def onewdir():
-#     otext = filedialog.askdirectory(title='Choose directory for output images (.png recommended)')
+#     otext = filedialog.askdirectory(title="Choose directory for output images (.png recommended)")
 #     ovar.set(otext)
 
-if __name__ == '__main__':
-    d_entry = './input'
-    o_entry = './output'
+if __name__ == "__main__":
+    d_entry = "./input"
+    o_entry = "./output"
     filtslide = 2
     sharpSlide = 5.56
     shEntry = -1.14
@@ -127,7 +127,7 @@ if __name__ == '__main__':
     # dvar = StringVar(root)
     # ovar = StringVar(root)
 
-    # d_label = Label(tFrame, text = 'Input file directory: ')
+    # d_label = Label(tFrame, text = "Input file directory: ")
     # d_label.grid(row=1, sticky=E, padx=20, pady=20)
     # d_entry = Entry(tFrame, textvariable = dvar)
     # d_entry.insert(0, "./input")
@@ -135,7 +135,7 @@ if __name__ == '__main__':
     # dir_button = Button(tFrame, text="Browse", command=dnewdir)
     # dir_button.grid(row=1, column=2)
 
-    # o_label = Label(tFrame, text = 'Output file directory: ')
+    # o_label = Label(tFrame, text = "Output file directory: ")
     # o_label.grid(row=2,sticky=E)
     # o_entry = Entry(tFrame, textvariable=ovar)
     # o_entry.insert(0, "./output")
@@ -143,26 +143,26 @@ if __name__ == '__main__':
     # out_button = Button(tFrame, text="Browse", command=onewdir)
     # out_button.grid(row=2, column=2)
 
-    # slideLabel = Label(bFrame, text = 'Blur amount: (Default is 2)')
+    # slideLabel = Label(bFrame, text = "Blur amount: (Default is 2)")
     # slideLabel.grid(row=0, padx=20)
     # filtslide = Scale(bFrame, from_=1, to=3, orient=HORIZONTAL)
     # filtslide.grid(row=1, columnspan=2)
     # filtslide.set(2)
 
-    # helpLabel = Label(bFrame, text = 'Sharpening: | point strength + (4 * low strength) | should be ~= 0')
+    # helpLabel = Label(bFrame, text = "Sharpening: | point strength + (4 * low strength) | should be ~= 0")
     # helpLabel.grid(row=5, padx=10)
-    # sharpLabel = Label(bFrame, text = 'Sharpening point strength: (Default is +5.56)')
+    # sharpLabel = Label(bFrame, text = "Sharpening point strength: (Default is +5.56)")
     # sharpLabel.grid(row=2, padx=20)
     # sharpSlide = Entry(bFrame)
     # sharpSlide.grid(row=3)
-    # sharpSlide.insert(0, '5.56')
-    # shLabel = Label(bFrame, text = 'Sharpening low strength:  (Default is -1.14)')
+    # sharpSlide.insert(0, "5.56")
+    # shLabel = Label(bFrame, text = "Sharpening low strength:  (Default is -1.14)")
     # shLabel.grid(row=4, padx=20)
-    # helpLabel = Label(bFrame, text = 'NOTE: Must be negative, absolute val should be == (1/4) * point strength')
+    # helpLabel = Label(bFrame, text = "NOTE: Must be negative, absolute val should be == (1/4) * point strength")
     # helpLabel.grid(row=5, padx=10)
     # shEntry = Entry(bFrame)
     # shEntry.grid(row=6, padx=20)
-    # shEntry.insert(0, '-1.14')
+    # shEntry.insert(0, "-1.14")
 
     # go_button = Button(bFrame, text="Go!", command = lambda: removeScreentones(d_entry.get(), o_entry.get(), filtslide.get(), sharpSlide.get(), shEntry.get()))
     # go_button.grid( columnspan=2)

@@ -1,6 +1,6 @@
 import os
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 import config
 import file
@@ -102,19 +102,19 @@ class Decensor:
             has_alpha = True
             alpha_channel = np.asarray(ori)[:, :, 3]
             alpha_channel = np.expand_dims(alpha_channel, axis=-1)
-            ori = ori.convert('RGB')
+            ori = ori.convert("RGB")
         ori_array = image_to_array(ori)
         ori_array = np.expand_dims(ori_array, axis=0)
         if self.is_mosaic:
-            colored = colored.convert('RGB')
+            colored = colored.convert("RGB")
             color_array = image_to_array(colored)
             color_array = np.expand_dims(color_array, axis=0)
             mask = self.get_mask(color_array)
             mask_reshaped = mask[0, :, :, :] * 255.0
-            mask_img = Image.fromarray(mask_reshaped.astype('uint8'))
+            mask_img = Image.fromarray(mask_reshaped.astype("uint8"))
         else:
             mask = self.get_mask(ori_array)
-        regions = find_regions(colored.convert('RGB'),
+        regions = find_regions(colored.convert("RGB"),
                                [v * 255 for v in self.mask_color])
         info("Found {} regions to decensor".format(len(regions)))
 
@@ -127,7 +127,7 @@ class Decensor:
             bounding_box = expand_bounding(ori, region, expand_factor=1.5)
             crop_img = ori.crop(bounding_box)
             mask_reshaped = mask[0, :, :, :] * 255.0
-            mask_img = Image.fromarray(mask_reshaped.astype('uint8'))
+            mask_img = Image.fromarray(mask_reshaped.astype("uint8"))
             crop_img = crop_img.resize((256, 256))
             crop_img_array = image_to_array(crop_img)
             mask_img = mask_img.crop(bounding_box)
@@ -137,7 +137,7 @@ class Decensor:
             if not self.is_mosaic:
                 a, b = np.where(np.all(mask_array == 0, axis=-1))
                 crop_img_array[a, b, :] = 0.
-            temp = Image.fromarray((crop_img_array * 255.0).astype('uint8'))
+            temp = Image.fromarray((crop_img_array * 255.0).astype("uint8"))
             crop_img_array = np.expand_dims(crop_img_array, axis=0)
             mask_array = np.expand_dims(mask_array, axis=0)
             crop_img_array = crop_img_array * 2.0 - 1
@@ -148,7 +148,7 @@ class Decensor:
                 np.uint8)
             bounding_width = bounding_box[2] - bounding_box[0]
             bounding_height = bounding_box[3] - bounding_box[1]
-            pred_img = Image.fromarray(pred_img_array.astype('uint8'))
+            pred_img = Image.fromarray(pred_img_array.astype("uint8"))
             pred_img = pred_img.resize((bounding_width, bounding_height),
                                        resample=Image.BICUBIC)
             pred_img_array = image_to_array(pred_img)
@@ -174,7 +174,7 @@ class Decensor:
         if has_alpha:
             output_img_array = np.concatenate(
                 (output_img_array, alpha_channel), axis=2)
-        output_img = Image.fromarray(output_img_array.astype('uint8'))
+        output_img = Image.fromarray(output_img_array.astype("uint8"))
 
         if file_name != None:
             save_path = os.path.join(self.args.decensor_output_path, file_name)
@@ -188,6 +188,6 @@ class Decensor:
             return output_img
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     decensor = Decensor()
     decensor.decensor_all_images_in_folder()
