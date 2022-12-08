@@ -1,7 +1,4 @@
 import os
-
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
 import config
 import file
 import numpy as np
@@ -10,10 +7,15 @@ from model import InpaintNN
 from PIL import Image
 from logging import info
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 info("----- DeepCreamPy modified by MilkFlavor -----")
 
-
 class Decensor:
+    """
+    It takes in a colored image, finds the green regions, and replaces them with the output of the
+    neural network
+    """
 
     def __init__(self):
         self.args = config.get_args()
