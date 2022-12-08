@@ -45,33 +45,33 @@ class InpaintNN():
 
         input = tf.concat([self.X, self.MASK], 3)
 
-        vec_en = mm.encoder(input, reuse=False, name="G_en")
+        vec_en = mm.encoder(input, reuse=False, name='G_en')
 
         vec_con = mm.contextual_block(vec_en,
                                       vec_en,
                                       self.MASK,
                                       3,
                                       50.0,
-                                      "CB1",
+                                      'CB1',
                                       stride=1)
 
         I_co = mm.decoder(vec_en,
                           self.input_height,
                           self.input_height,
                           reuse=False,
-                          name="G_de")
+                          name='G_de')
         I_ge = mm.decoder(vec_con,
                           self.input_height,
                           self.input_height,
                           reuse=True,
-                          name="G_de")
+                          name='G_de')
 
         self.image_result = I_ge * (1 - self.MASK) + self.Y * self.MASK
 
-        D_real_red = mm.discriminator_red(self.Y, reuse=False, name="disc_red")
+        D_real_red = mm.discriminator_red(self.Y, reuse=False, name='disc_red')
         D_fake_red = mm.discriminator_red(self.image_result,
                                           reuse=True,
-                                          name="disc_red")
+                                          name='disc_red')
 
         # ------- Losses ------- #
 
@@ -85,10 +85,10 @@ class InpaintNN():
         Loss_hat = tf.reduce_mean(input_tensor=tf.abs(I_co - self.Y))
 
         A = tf.image.rgb_to_yuv((self.image_result + 1) / 2.0)
-        A_Y = tf.cast(A[:, :, :, 0:1] * 255.0, "int32")
+        A_Y = tf.cast(A[:, :, :, 0:1] * 255.0, 'int32')
 
         B = tf.image.rgb_to_yuv((self.Y + 1) / 2.0)
-        B_Y = tf.cast(B[:, :, :, 0:1] * 255.0, "int32")
+        B_Y = tf.cast(B[:, :, :, 0:1] * 255.0, 'int32')
 
         ssim = tf.reduce_mean(input_tensor=tf.image.ssim(A_Y, B_Y, 255.0))
 
@@ -100,12 +100,12 @@ class InpaintNN():
 
         var_D = [
             v for v in tf.compat.v1.global_variables()
-            if v.name.startswith("disc_red")
+            if v.name.startswith('disc_red')
         ]
         var_G = [
             v for v in tf.compat.v1.global_variables()
-            if v.name.startswith("G_en") or v.name.startswith("G_de")
-            or v.name.startswith("CB1")
+            if v.name.startswith('G_en') or v.name.startswith('G_de')
+            or v.name.startswith('CB1')
         ]
         update_ops = tf.compat.v1.get_collection(
             tf.compat.v1.GraphKeys.UPDATE_OPS)

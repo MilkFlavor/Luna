@@ -53,7 +53,7 @@ def display_images(images,
     for image, title in zip(images, titles):
         plt.subplot(rows, cols, i)
         plt.title(title, fontsize=9)
-        plt.axis("off")
+        plt.axis('off')
         plt.imshow(image.astype(np.uint8),
                    cmap=cmap,
                    norm=norm,
@@ -130,7 +130,7 @@ def display_instances(image,
     height, width = image.shape[:2]
     ax.set_ylim(height + 10, -10)
     ax.set_xlim(-10, width + 10)
-    ax.axis("off")
+    ax.axis('off')
     ax.set_title(title)
 
     masked_image = image.astype(np.uint32).copy()
@@ -150,7 +150,7 @@ def display_instances(image,
                                   alpha=0.7,
                                   linestyle="dashed",
                                   edgecolor=color,
-                                  facecolor="none")
+                                  facecolor='none')
             ax.add_patch(p)
 
         # Label
@@ -164,7 +164,7 @@ def display_instances(image,
         ax.text(x1,
                 y1 + 8,
                 caption,
-                color="w",
+                color='w',
                 size=11,
                 backgroundcolor="none")
 
@@ -276,7 +276,7 @@ def draw_rois(image,
     # Show area outside image boundaries.
     ax.set_ylim(image.shape[0] + 20, -20)
     ax.set_xlim(-50, image.shape[1] + 20)
-    ax.axis("off")
+    ax.axis('off')
 
     for i, id in enumerate(ids):
         color = np.random.rand(3)
@@ -288,7 +288,7 @@ def draw_rois(image,
                               y2 - y1,
                               linewidth=2,
                               edgecolor=color if class_id else "gray",
-                              facecolor="none",
+                              facecolor='none',
                               linestyle="dashed")
         ax.add_patch(p)
         # Refined ROI
@@ -299,7 +299,7 @@ def draw_rois(image,
                                   ry2 - ry1,
                                   linewidth=2,
                                   edgecolor=color,
-                                  facecolor="none")
+                                  facecolor='none')
             ax.add_patch(p)
             # Connect the top-left corners of the anchor and proposal for easy visualization
             ax.add_line(lines.Line2D([x1, rx1], [y1, ry1], color=color))
@@ -309,7 +309,7 @@ def draw_rois(image,
             ax.text(rx1,
                     ry1 + 8,
                     "{}".format(label),
-                    color="w",
+                    color='w',
                     size=11,
                     backgroundcolor="none")
 
@@ -400,7 +400,7 @@ def plot_overlaps(gt_class_ids,
     pred_class_ids = pred_class_ids[pred_class_ids != 0]
 
     plt.figure(figsize=(12, 10))
-    plt.imshow(overlaps, interpolation="nearest", cmap=plt.cm.Blues)
+    plt.imshow(overlaps, interpolation='nearest', cmap=plt.cm.Blues)
     plt.yticks(np.arange(len(pred_class_ids)), [
         "{} ({:.2f})".format(class_names[int(id)], pred_scores[i])
         for i, id in enumerate(pred_class_ids)
@@ -443,7 +443,7 @@ def draw_boxes(image,
 
     boxes: [N, (y1, x1, y2, x2, class_id)] in image coordinates.
     refined_boxes: Like boxes, but draw with solid lines to show
-        that they"re the result of refining "boxes".
+        that they're the result of refining 'boxes'.
     masks: [N, height, width]
     captions: List of N titles to display on each box
     visibilities: (optional) List of values of 0, 1, or 2. Determine how
@@ -466,7 +466,7 @@ def draw_boxes(image,
     margin = image.shape[0] // 10
     ax.set_ylim(image.shape[0] + margin, -margin)
     ax.set_xlim(-margin, image.shape[1] + margin)
-    ax.axis("off")
+    ax.axis('off')
 
     ax.set_title(title)
 
@@ -500,7 +500,7 @@ def draw_boxes(image,
                                   alpha=alpha,
                                   linestyle=style,
                                   edgecolor=color,
-                                  facecolor="none")
+                                  facecolor='none')
             ax.add_patch(p)
 
         # Refined boxes
@@ -511,7 +511,7 @@ def draw_boxes(image,
                                   ry2 - ry1,
                                   linewidth=2,
                                   edgecolor=color,
-                                  facecolor="none")
+                                  facecolor='none')
             ax.add_patch(p)
             # Connect the top-left corners of the anchor and proposal
             if boxes is not None:
@@ -527,14 +527,14 @@ def draw_boxes(image,
                     y1,
                     caption,
                     size=11,
-                    verticalalignment="top",
-                    color="w",
+                    verticalalignment='top',
+                    color='w',
                     backgroundcolor="none",
                     bbox={
-                        "facecolor": color,
-                        "alpha": 0.5,
-                        "pad": 2,
-                        "edgecolor": "none"
+                        'facecolor': color,
+                        'alpha': 0.5,
+                        'pad': 2,
+                        'edgecolor': 'none'
                     })
 
         # Masks
@@ -584,9 +584,9 @@ def display_weight_stats(model):
             alert = ""
             if w.min() == w.max() and not (l.__class__.__name__ == "Conv2D"
                                            and i == 1):
-                alert += "<span style="color:red">*** dead?</span>"
+                alert += "<span style='color:red'>*** dead?</span>"
             if np.abs(w.min()) > 1000 or np.abs(w.max()) > 1000:
-                alert += "<span style="color:red">*** Overflow?</span>"
+                alert += "<span style='color:red'>*** Overflow?</span>"
             # Add row
             table.append([
                 weight_name + alert,

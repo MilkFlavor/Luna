@@ -174,31 +174,31 @@ def spectral_norm(w, name, iteration=1):
 def convolution_SN(tensor, output_dim, kernel_size, stride, name):
     _, h, w, c = [i.value for i in tensor.get_shape()]
     w = tf.compat.v1.get_variable(
-        name=name + "w",
+        name=name + 'w',
         shape=[kernel_size, kernel_size, c, output_dim],
         initializer=layers.xavier_initializer())
-    b = tf.compat.v1.get_variable(name=name + "b",
+    b = tf.compat.v1.get_variable(name=name + 'b',
                                   shape=[output_dim],
                                   initializer=tf.constant_initializer(0.0))
     output = tf.nn.conv2d(tensor,
-                          filters=spectral_norm(w, name=name + "w"),
+                          filters=spectral_norm(w, name=name + 'w'),
                           strides=[1, stride, stride, 1],
-                          padding="SAME") + b
+                          padding='SAME') + b
     return output
 
 
 def dense_SN(tensor, output_dim, name):
     _, h, w, c = [i.value for i in tensor.get_shape()]
-    w = tf.get_variable(name=name + "w",
+    w = tf.get_variable(name=name + 'w',
                         shape=[h, w, c, output_dim],
                         initializer=layers.xavier_initializer())
-    b = tf.get_variable(name=name + "b",
+    b = tf.get_variable(name=name + 'b',
                         shape=[output_dim],
                         initializer=tf.constant_initializer(0.0))
     output = tf.nn.conv2d(tensor,
-                          filter=spectral_norm(w, name=name + "w"),
+                          filter=spectral_norm(w, name=name + 'w'),
                           strides=[1, 1, 1, 1],
-                          padding="VALID") + b
+                          padding='VALID') + b
     return output
 
 
@@ -208,15 +208,15 @@ def dense_RED_SN(tensor, name):
     h = int(h)
     w = int(w)
     c = int(c)
-    weight = tf.compat.v1.get_variable(name=name + "_w",
+    weight = tf.compat.v1.get_variable(name=name + '_w',
                                        shape=[h * w, 1, c, 1],
                                        initializer=layers.xavier_initializer())
-    b = tf.compat.v1.get_variable(name=name + "_b",
+    b = tf.compat.v1.get_variable(name=name + '_b',
                                   shape=[1, h, w, 1],
                                   initializer=tf.constant_initializer(0.0))
     for it in range(h * w):
         w_pixel = weight[it:it + 1, :, :, :]
-        sn_w_pixel = spectral_norm(w_pixel, name=name + "w_%d" % it)
+        sn_w_pixel = spectral_norm(w_pixel, name=name + 'w_%d' % it)
         if it == 0:
             sn_w = sn_w_pixel
         else:

@@ -8,25 +8,26 @@ from . import architecture
 # ESRGAN class allows abstraction of warmup and inference.
 class esrgan():
     # hw = cpu, or cuda
-    def __init__(self, model_path=None, hw="cpu"):
+    def __init__(self, model_path=None, hw='cpu'):
         assert model_path
-        if hw == "cpu":
-            self.device = torch.device("cpu")
-        if hw == "cuda":
-            self.device = torch.device("cuda")
-        self.model = architecture.RRDB_Net(3, 3, 64, 23, gc=32, upscale=4, norm_type=None, act_type="leakyrelu", \
-                                mode="CNA", res_scale=1, upsample_mode="upconv")
+        if hw == 'cpu':
+            self.device = torch.device('cpu')
+        if hw == 'cuda':
+            self.device = torch.device('cuda')
+        self.model = architecture.RRDB_Net(3, 3, 64, 23, gc=32, upscale=4, norm_type=None, act_type='leakyrelu', \
+                                mode='CNA', res_scale=1, upsample_mode='upconv')
         self.model.load_state_dict(torch.load(model_path), strict=True)
         self.model.eval()
         for k, v in self.model.named_parameters():
             v.requires_grad = False
         self.model = self.model.to(self.device)
-        print("Model warmup complete")
+        print('Model warmup complete')
 
     # Function to run esrgan on single image, and single output.
     def run_esrgan(self,
                    test_img_folder=None,
-                   out_filename=None):
+                   out_filename=None,
+                   mosaic_res=1):
         assert out_filename
         assert test_img_folder
 
@@ -54,5 +55,5 @@ class esrgan():
         output = np.transpose(output[[2, 1, 0], :, :], (1, 2, 0))
         output = (output * 255.0).round()
         # cv2.imwrite(out_filename, output)
-        im_buf_arr = cv2.imencode(".png", output)
+        is_success, im_buf_arr = cv2.imencode(".png", output)
         im_buf_arr.tofile(out_filename)

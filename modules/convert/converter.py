@@ -3,10 +3,11 @@ This script is used to convert the data from the old image format to a
 PNG format by using the Pillow .save function.
 """
 from logging import INFO, basicConfig, info
-basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
 from os import getcwd, listdir, mkdir, path
 
 from PIL import Image
+
+basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
 
 input_path = "/input"
 output_path = "/output"
@@ -17,7 +18,7 @@ try:
     info(f"The output folder - {output_path}, has been created!")
 except FileExistsError:
     info(
-        f"The folder {output_path} already exists! PNGs will be saved in it!"
+        f"The folder {output_path} already exists! All the PNG files will be saved in it!"
     )
 
 # Each image in the input folder is made into a .png
