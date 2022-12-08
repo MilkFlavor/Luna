@@ -57,12 +57,11 @@ class Decensor:
                     color_file_path) and color_ext.casefold() == ".png":
                 info(
                     "--------------------------------------------------------------------------")
-                info("Decensoring the image {}".format(color_file_path))
+                info("Decensoring the image", color_file_path)
                 try:
                     colored_img = Image.open(color_file_path)
-                except:
-                    info("Error: Cannot open the image {}".format(color_file_path))
-                    self.files_removed.append((color_file_path, 3))
+                except FileExistsError as e:
+                    info("Failed to open the image" + color_file_path, e)
                     continue
                 if self.is_mosaic:
                     ori_dir = self.args.decensor_input_original_path
@@ -149,7 +148,7 @@ class Decensor:
             bounding_height = bounding_box[3] - bounding_box[1]
             pred_img = Image.fromarray(pred_img_array.astype('uint8'))
             pred_img = pred_img.resize((bounding_width, bounding_height),
-                                       resample=Image.BICUBIC)
+                                       resample=Image.Resampling.BICUBIC)
             pred_img_array = image_to_array(pred_img)
             pred_img_array = np.expand_dims(pred_img_array, axis=0)
 
