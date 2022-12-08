@@ -1,6 +1,18 @@
-import os
+"""
+Mask R-CNN
+The main Mask R-CNN model implementation.
+
+Copyright (c) 2017 Matterport, Inc.
+Licensed under the MIT License (see LICENSE for details)
+Written by Waleed Abdulla
+"""
+
+import datetime
+from logging import INFO, basicConfig, info
+basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
 import math
 import multiprocessing
+import os
 import random
 import re
 from collections import OrderedDict
@@ -12,19 +24,6 @@ import keras.models as KM
 import numpy as np
 import tensorflow as tf
 from mrcnn import utils
-
-"""
-Mask R-CNN
-The main Mask R-CNN model implementation.
-
-Copyright (c) 2017 Matterport, Inc.
-Licensed under the MIT License (see LICENSE for details)
-Written by Waleed Abdulla
-"""
-
-import datetime
-from logging import INFO, basicConfig
-basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
 
 ############################################################
 #  Utility Functions
@@ -61,8 +60,7 @@ class BatchNorm(KL.BatchNormalization):
         Note about training values:
             None: Train BN layers. This is the normal mode
             False: Freeze BN layers. Good when batch size is small
-            True: (don't use). Set layer in training mode even when 
-            making inferences.
+            True: (don't use). Set layer in training mode even when making inferences
         """
         return super(self.__class__, self).call(inputs, training=training)
 

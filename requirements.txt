@@ -8,3 +8,11 @@ IPython==8.6.0
 scipy==1.9.3
 tf-slim==1.1.0
 requests==2.28.1
+basicsr==1.3.4.9
+image_slicer==2.1.1
+realesrgan==0.2.3.0
+torchvision==0.11.2
+tqdm==4.62.3
+moviepy==1.0.3
+numpy==1.19.5
+Pillow==9.0.0
