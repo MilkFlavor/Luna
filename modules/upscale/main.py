@@ -1,4 +1,7 @@
-import os 
+"""
+Upscaler
+"""
+import os
 import torch
 from PIL import Image
 from model import RealESRGAN
@@ -11,7 +14,7 @@ def main() -> int:
     for i, image in enumerate(os.listdir("inputs")):
         image = Image.open(f"inputs/{image}").convert('RGB')
         sr_image = model.predict(image)
-        sr_image.save(f'results/{i}.png')
+        sr_image.save(f'output/{i}.png')
 
 
 if __name__ == '__main__':
