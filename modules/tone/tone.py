@@ -3,49 +3,41 @@ Feb 2020 - Nathan Cueto
 Attempt to remove screentones from input images (png) using blurring and sharpening
 """
 
-from os import listdir
-
 import numpy as np
+from os import listdir
 from cv2 import GaussianBlur, bilateralFilter, filter2D, imread, imwrite
 
-from logging import info
+from cmyui import log, Ansi
 
-info('----- ToneRemover modified by MilkFlavor -----')
-
+log('----- ToneRemover modified by Gusbell -----', Ansi.CYAN)
 
 def blur(img, blur_amount=5):
-    if (blur_amount == 7):
-        dst2 = GaussianBlur(img, (7, 7), 0)
+    if(blur_amount == 7):
+        dst2 = GaussianBlur(img,(7,7),0)
         dst = bilateralFilter(dst2, 7, 80, 80)
     else:
-        dst2 = GaussianBlur(img, (5, 5), 0)
+        dst2 = GaussianBlur(img,(5,5),0)
         dst = bilateralFilter(dst2, 7, 10 * blur_amount, 80)
     return dst
 
-
 def sharp(img, sharp_point, sharp_low):
-    s_kernel = np.array([[0, sharp_low,
-                          0], [sharp_low, sharp_point, sharp_low],
-                         [0, sharp_low, 0]])
+    s_kernel = np.array([[0, sharp_low, 0], [sharp_low, sharp_point, sharp_low], [0, sharp_low, 0]])
     sharpened = filter2D(img, -1, s_kernel)
     return sharpened
 
-
 def getfileList(dir):
-    return (i for i in listdir(dir) if i.endswith('.png') or i.endswith('.PNG')
-            or i.endswith('.jpg') or i.endswith('.JPG') or i.endswith('.jpeg'))
-
+    return (i for i in listdir(dir) if i.endswith('.png') or i.endswith('.PNG') or i.endswith('.jpg') or i.endswith('.JPG') or i.endswith('.jpeg'))
 
 def removeScreentones(dir_i, dir_o, blur_amount, sh_point=5.56, sh_low=-1.14):
-    if (dir_i == [] or len(dir_i) == 0):
-        info('No input directory')
-    if (dir_o == [] or len(dir_o) == 0):
-        info('No output directory')
+    if(dir_i == [] or len(dir_i)==0):
+        log('No input directory', Ansi.RED)
+    if(dir_o == [] or len(dir_o)==0):
+        log('No output directory', Ansi.RED)
     inputs = list(getfileList(dir_i))
-    if (len(inputs) == 0):
-        info('No png file founded')
+    if(len(inputs) == 0):
+        log('No png file founded', Ansi.RED)
 
-    info('Removing tone')
+    log('Removing tone', Ansi.CYAN)
 
     sh_point = float(sh_point)
     sh_low = float(sh_low)
@@ -68,12 +60,12 @@ def removeScreentones(dir_i, dir_o, blur_amount, sh_point=5.56, sh_low=-1.14):
     #     popupw.mainloop()
 
     bs_amount = 0
-    if (blur_amount == 1):
-        bs_amount = 3
-    if (blur_amount == 2):
-        bs_amount = 5
-    if (blur_amount == 3):
-        bs_amount = 7
+    if(blur_amount==1):
+        bs_amount=3
+    if(blur_amount==2):
+        bs_amount=5
+    if(blur_amount==3):
+        bs_amount=7
 
     # loader = Tk()
     # loader.title('Processing')
@@ -85,9 +77,9 @@ def removeScreentones(dir_i, dir_o, blur_amount, sh_point=5.56, sh_low=-1.14):
         blurred = blur(img, bs_amount)
         ret = sharp(blurred, sh_point, sh_low)
         sucess = imwrite(dir_o + '/' + i, ret)
-        if (sucess != True):
-            info('An error occured')
-    info('ToneRemover has done running')
+        if(sucess != True):
+            log('An error occured', Ansi.RED)
+    log('ToneRemover has done running', Ansi.GREEN)
 
     # loader.destroy()
     # popup = Tk()
@@ -97,7 +89,6 @@ def removeScreentones(dir_i, dir_o, blur_amount, sh_point=5.56, sh_low=-1.14):
     # okbutton = Button(popup, text='Ok', command=popup.destroy)
     # okbutton.pack()
     # popup.mainloop()
-
 
 dtext = ""
 otext = ""
@@ -133,7 +124,7 @@ if __name__ == '__main__':
     # d_entry.grid(row=1, column=1)
     # dir_button = Button(tFrame, text="Browse", command=dnewdir)
     # dir_button.grid(row=1, column=2)
-
+    
     # o_label = Label(tFrame, text = 'Output file directory: ')
     # o_label.grid(row=2,sticky=E)
     # o_entry = Entry(tFrame, textvariable=ovar)
@@ -170,5 +161,6 @@ if __name__ == '__main__':
     # bFrame.pack(fill="both", expand=True)
 
     # root.mainloop()
+    
 
     # pass

@@ -13,11 +13,10 @@ https://github.com/avolkov1/keras_experiments/blob/master/keras_exp/multigpu/
 https://github.com/fchollet/keras/blob/master/keras/utils/training_utils.py
 """
 
-import keras.backend as K
-import keras.layers as KL
-import keras.models as KM
 import tensorflow as tf
-
+import keras.layers as KL
+import keras.backend as K
+import keras.models as KM
 
 class ParallelModel(KM.Model):
     """Subclasses the standard Keras Model and adds multi-GPU support.
@@ -57,11 +56,7 @@ class ParallelModel(KM.Model):
         """
         # Slice inputs. Slice inputs on the CPU to avoid sending a copy
         # of the full inputs to all GPUs. Saves on bandwidth and memory.
-        input_slices = {
-            name: tf.split(x, self.gpu_count)
-            for name, x in zip(self.inner_model.input_names,
-                               self.inner_model.inputs)
-        }
+        input_slices = {name: tf.split(x, self.gpu_count) for name, x in zip(self.inner_model.input_names, self.inner_model.inputs)}
 
         output_names = self.inner_model.output_names
         outputs_all = []
@@ -76,11 +71,8 @@ class ParallelModel(KM.Model):
                     zipped_inputs = zip(self.inner_model.input_names,
                                         self.inner_model.inputs)
                     inputs = [
-                        KL.Lambda(lambda s: input_slices[name][i],
-                                  output_shape=lambda s:
-                                  (None, ) + s[1:])(tensor)
-                        for name, tensor in zipped_inputs
-                    ]
+                        KL.Lambda(lambda s: input_slices[name][i], output_shape=lambda s: (None,) + s[1:])(tensor)
+                        for name, tensor in zipped_inputs]
                     # Create the model replica and get the outputs
                     outputs = self.inner_model(inputs)
                     if not isinstance(outputs, list):
@@ -100,8 +92,7 @@ class ParallelModel(KM.Model):
                 # Keras expects losses and metrics to be scalars.
                 if K.int_shape(outputs[0]) == ():
                     # Average
-                    m = KL.Lambda(lambda o: tf.add_n(o) / len(outputs),
-                                  name=name)(outputs)
+                    m = KL.Lambda(lambda o: tf.add_n(o) / len(outputs), name=name)(outputs)
                 else:
                     # Concatenate
                     m = KL.Concatenate(axis=0, name=name)(outputs)
@@ -117,9 +108,8 @@ if __name__ == "__main__":
     # python3 parallel_model.py
 
     import os
-
-    import keras.optimizers
     import numpy as np
+    import keras.optimizers
     from keras.datasets import mnist
     from keras.preprocessing.image import ImageDataGenerator
 
@@ -138,14 +128,8 @@ if __name__ == "__main__":
         tf.compat.v1.reset_default_graph()
 
         inputs = KL.Input(shape=x_train.shape[1:], name="input_image")
-        x = KL.Conv2D(32, (3, 3),
-                      activation='relu',
-                      padding="same",
-                      name="conv1")(inputs)
-        x = KL.Conv2D(64, (3, 3),
-                      activation='relu',
-                      padding="same",
-                      name="conv2")(x)
+        x = KL.Conv2D(32, (3, 3), activation='relu', padding="same", name="conv1")(inputs)
+        x = KL.Conv2D(64, (3, 3), activation='relu', padding="same", name="conv2")(x)
         x = KL.MaxPooling2D(pool_size=(2, 2), name="pool1")(x)
         x = KL.Flatten(name="flat1")(x)
         x = KL.Dense(128, activation='relu', name="dense1")(x)
@@ -170,19 +154,14 @@ if __name__ == "__main__":
 
     optimizer = keras.optimizers.SGD(lr=0.01, momentum=0.9, clipnorm=5.0)
 
-    model.compile(loss='sparse_categorical_crossentropy',
-                  optimizer=optimizer,
-                  metrics=['accuracy'])
+    model.compile(loss='sparse_categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
     model.summary()
 
     # Train
-    model.fit_generator(datagen.flow(x_train, y_train, batch_size=64),
-                        steps_per_epoch=50,
-                        epochs=10,
-                        verbose=1,
-                        validation_data=(x_test, y_test),
-                        callbacks=[
-                            keras.callbacks.TensorBoard(log_dir=MODEL_DIR,
-                                                        write_graph=True)
-                        ])
+    model.fit_generator(
+        datagen.flow(x_train, y_train, batch_size=64),
+        steps_per_epoch=50, epochs=10, verbose=1,
+        validation_data=(x_test, y_test),
+        callbacks=[keras.callbacks.TensorBoard(log_dir=MODEL_DIR, write_graph=True)]
+    )
