@@ -487,7 +487,6 @@ class Detector():
                          save_path='',
                          is_video=False,
                          orig_video_folder=None,
-                         force_jpg=False,
                          is_mosaic=False,
                          dilation=0):
         assert image_path
