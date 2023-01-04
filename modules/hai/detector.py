@@ -487,6 +487,7 @@ class Detector():
                          save_path='',
                          is_video=False,
                          orig_video_folder=None,
+                         force_jpg=False,
                          is_mosaic=False,
                          dilation=0):
         assert image_path
@@ -565,12 +566,6 @@ class Detector():
                 info(e)
                 return
             # Detect objects
-            '''
-            image_ced = bilateralFilter(image, 3, 70, 70) 
-            image_ced =Canny(image=image_ced, threshold1=10, threshold2=42)
-            image_ced = 255 - image_ced
-            image_ced = cvtColor(image_ced,COLOR_GRAY2RGB)
-            '''
             # skimage.io.imsave(save_path + fname[:-4] + '_ced' + '.png', image_ced)
             try:
                 # r = self.model.detect([image_ced], verbose=0)[0]
@@ -579,7 +574,7 @@ class Detector():
                 print("ERROR in detect_and_cover: Model detection.", e)
                 return
             # Remove unwanted class, code from https://github.com/matterport/Mask_RCNN/issues/1666
-            if is_mosaic == True or is_video == True:
+            if is_mosaic is True or is_video is True:
                 remove_indices = np.where(
                     r['class_ids'] != 2)  # remove bars: class 2
             else:
@@ -594,9 +589,9 @@ class Detector():
                 # Save output, now force save as png
                 file_name = save_path + fname[:-4] + '.png'
                 skimage.io.imsave(file_name, cov)
-            except:
-                info(
-                    f"ERROR in detect_and_cover: Image write. Skipping. {image_path}")
+            except Exception as e:
+                print("ERROR in detect_and_cover: Image save.", e)
+                return
             # print("Saved to ", file_name)
 
     # Function for file parsing, calls the aboven detect_and_cover
