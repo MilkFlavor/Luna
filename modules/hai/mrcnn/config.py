@@ -13,13 +13,12 @@ import numpy as np
 # Don't use this class directly. Instead, sub-class it and override
 # the configurations you need to change.
 
-
 class Config(object):
     """Base configuration class. For custom configurations, create a
     sub-class that inherits from this one and override properties
     that need to be changed.
     """
-    # Name the configurations. For example, "COCO", "Experiment 3", ...etc.
+    # Name the configurations. For example, 'COCO', 'Experiment 3', ...etc.
     # Useful if your code needs to do things differently depending on which
     # experiment is running.
     NAME = None  # Override in sub-classes
@@ -90,7 +89,7 @@ class Config(object):
 
     # How many anchors per image to use for RPN training
     RPN_TRAIN_ANCHORS_PER_IMAGE = 256
-
+    
     # ROIs kept after tf.nn.top_k and before non-maximum suppression
     PRE_NMS_LIMIT = 6000
 
@@ -129,7 +128,7 @@ class Config(object):
     # Minimum scaling ratio. Checked after MIN_IMAGE_DIM and can force further
     # up scaling. For example, if set to 2 then images are scaled up to double
     # the width and height, or more, even if MIN_IMAGE_DIM doesn't require it.
-    # However, in "square" mode, it can be overruled by IMAGE_MAX_DIM.
+    # However, in 'square' mode, it can be overruled by IMAGE_MAX_DIM.
     IMAGE_MIN_SCALE = 0
     # Number of color channels per image. RGB = 3, grayscale = 1, RGB-D = 4
     # Changing this requires other changes in the code. See the WIKI for more
@@ -217,15 +216,11 @@ class Config(object):
 
         # Input image size
         if self.IMAGE_RESIZE_MODE == "crop":
-            self.IMAGE_SHAPE = np.array([
-                self.IMAGE_MIN_DIM, self.IMAGE_MIN_DIM,
-                self.IMAGE_CHANNEL_COUNT
-            ])
+            self.IMAGE_SHAPE = np.array([self.IMAGE_MIN_DIM, self.IMAGE_MIN_DIM,
+                self.IMAGE_CHANNEL_COUNT])
         else:
-            self.IMAGE_SHAPE = np.array([
-                self.IMAGE_MAX_DIM, self.IMAGE_MAX_DIM,
-                self.IMAGE_CHANNEL_COUNT
-            ])
+            self.IMAGE_SHAPE = np.array([self.IMAGE_MAX_DIM, self.IMAGE_MAX_DIM,
+                self.IMAGE_CHANNEL_COUNT])
 
         # Image meta data length
         # See compose_image_meta() for details
