@@ -1,6 +1,9 @@
 import numpy as np
 from PIL import Image, ImageDraw
 
+from logging import INFO, basicConfig, info
+basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
+
 # Convert PIL image to numpy array
 def image_to_array(image):
     array = np.asarray(image)
@@ -113,8 +116,8 @@ def expand_bounding(img, region, expand_factor=1.5, min_size = 256):
             y1_square -= difference
             y2_square -= difference
     if x2_square > width or y2_square > height:
-        print("Bounding box out of bounds")
-        print(x1_square, y1_square, x2_square, y2_square)
+        info("Bounding box out of bounds")
+        info(x1_square, y1_square, x2_square, y2_square)
         x1_square, y1_square, x2_square, y2_square = min_x, min_y, max_x, max_y
     return x1_square, y1_square, x2_square, y2_square
 

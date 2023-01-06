@@ -56,7 +56,7 @@ def get_mosaic_res(root_img=None):
         resolutions[masksize-1] = rects
 
     resolutions.append(0)
-#    print(resolutions)    #DEBUG Resolutions array
+#    info(resolutions)    #DEBUG Resolutions array
     extremaMIN = argrelextrema(np.array(resolutions), np.less, axis=0)[0]
     extremaMIN = np.insert(extremaMIN,0,LowRange)
     extremaMIN = np.append(extremaMIN,HighRange+2)
