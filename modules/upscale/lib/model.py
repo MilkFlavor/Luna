@@ -6,8 +6,8 @@ import numpy as np
 import cv2
 from huggingface_hub import hf_hub_url, cached_download
 
-from rrdbnet_arch import RRDBNet
-from utils import pad_reflect, split_image_into_overlapping_patches, stich_together, \
+from .rrdbnet_arch import RRDBNet
+from .utils import pad_reflect, split_image_into_overlapping_patches, stich_together, \
                    unpad_image
 
 
