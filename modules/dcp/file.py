@@ -1,7 +1,4 @@
 import os
-from logging import INFO, basicConfig, info
-
-basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
 
 def check_file(input_dir, output_dir, Release_version=True):
     file_list = []
@@ -16,7 +13,7 @@ def check_file(input_dir, output_dir, Release_version=True):
             file_list.append(file_in)
 
     if(Release_version is True):
-        info("\nChecking valid files...")
+        print("\nChecking valid files...")
         for file_out in output_dir:
             if file_out.lower().endswith('.png'):
                 output_file_list.append(file_out)
@@ -28,12 +25,12 @@ def check_file(input_dir, output_dir, Release_version=True):
                 if(lhs == rhs):
                     files_removed.append((lhs, 1))
 
-        info("\n＃＃＃ These files will not be decensored for following reason  ＃＃＃\n")
+        print("\n＃＃＃ These files will not be decensored for following reason  ＃＃＃\n")
 
         error_messages(file_list, files_removed)
         input("\nPress anything to continue...")
 
-        info("\n＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃\n")
+        print("\n＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃＃\n")
 
     return file_list, files_removed
 
@@ -47,8 +44,8 @@ def error_messages(file_list, files_removed):
         if(file_list is not None):
             file_list.remove(remove_this)
         if reason == 0:
-            info(" REMOVED : (" + str(remove_this) + ")   is not PNG file format")
+            print(" REMOVED : (" + str(remove_this) + ")   is not PNG file format")
         elif reason == 1:
-            info(" REMOVED : (" + str(remove_this) + ")   already exists")
+            print(" REMOVED : (" + str(remove_this) + ")   already exists")
         elif reason == 2:
-            info(" REMOVED : (" + str(remove_this) + ")   file unreadable")
+            print(" REMOVED : (" + str(remove_this) + ")   file unreadable")

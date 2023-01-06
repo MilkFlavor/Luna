@@ -12,9 +12,6 @@ from cmyui import log, Ansi
 from mrcnn.config import Config
 from mrcnn import model as modellib
 
-from logging import INFO, basicConfig, info
-basicConfig(format="[%(asctime)s] %(message)s", level=INFO)
-
 from green_mask_project_mosaic_resolution import get_mosaic_res
 from cv2 import multiply, add, erode, VideoCapture, CAP_PROP_FRAME_COUNT, CAP_PROP_FRAME_HEIGHT, CAP_PROP_FRAME_WIDTH, CAP_PROP_FPS, VideoWriter, VideoWriter_fourcc, resize, INTER_AREA, GaussianBlur
 
@@ -81,7 +78,7 @@ class Detector():
         # Scan for cuda compatible GPU for ESRGAN. Mask-RCNN *should* automatically use a GPU if available.
         self.hardware = 'cpu'
         if self.model.check_cuda_gpu()==True:
-            # info("CUDA-compatible GPU located! ****DEBUG CPU MODE****")
+            # print("CUDA-compatible GPU located! ****DEBUG CPU MODE****")
             log("CUDA-compatible GPU located!", Ansi.GREEN)
             self.hardware = 'cuda'
         # destroy model. Will re init during weight load.
@@ -193,7 +190,7 @@ class Detector():
             # Calculate mosaic granularity.
             granularity = get_mosaic_res(np.array(image))
             if granularity < 10: #TODO: implement adaptive granularity by weighted changes
-                info("Granularity of image was less than threshold at ", granularity)
+                print("Granularity of image was less than threshold at ", granularity)
                 granularity = 10
             # Resize image down
             try:
@@ -214,15 +211,15 @@ class Detector():
                 width = int(vcapture.get(CAP_PROP_FRAME_WIDTH))
                 height = int(vcapture.get(CAP_PROP_FRAME_HEIGHT))
                 fps = vcapture.get(CAP_PROP_FPS)
-                info("Detected fps:", fps)
+                print("Detected fps:", fps)
             except Exception as e:
-                info("ERROR in resize_GAN: video read and init.", e)
+                print("ERROR in resize_GAN: video read and init.", e)
                 return
             count = 0
             success = True
-            info("Video read complete. Starting video phase 1 : resize + GAN")
+            print("Video read complete. Starting video phase 1 : resize + GAN")
             while success:
-                info("frame: ", count, "/",vcapture.get(CAP_PROP_FRAME_COUNT))
+                print("frame: ", count, "/",vcapture.get(CAP_PROP_FRAME_COUNT))
                 # Read next image
                 success, image = vcapture.read()
                 if success:
@@ -231,7 +228,7 @@ class Detector():
 
                     granularity = get_mosaic_res(np.array(image)) # pass np array of image as ref to gmp function
                     if granularity < 10: #TODO: implement adaptive granularity by weighted changes
-                        info('Granularity was less than threshold at ',granularity)
+                        print('Granularity was less than threshold at ',granularity)
                         granularity = 10
                     
                     # initial resize frame
@@ -247,7 +244,7 @@ class Detector():
                     gan_image = skimage.io.imread(gan_img_path)
                     gan_image = resize(gan_image, (image.shape[1], image.shape[0]))
                     count += 1
-            info('Video: Phase 1 complete!')
+            print('Video: Phase 1 complete!')
     # Runs hent-AI detection and splice. Mosaic only.
     def ESRGAN(self, img_path, img_name, is_video=False):
         # Image reads
@@ -259,15 +256,15 @@ class Detector():
                 if image.shape[-1] == 4:
                     image = image[..., :3] # strip alpha channel
             except Exception as e:
-                info("ERROR in detector.ESRGAN: Image read. Skipping. image_path=", img_path)
-                info(e)
+                print("ERROR in detector.ESRGAN: Image read. Skipping. image_path=", img_path)
+                print(e)
                 return
             # Run detection first
             r = self.model.detect([image], verbose=0)[0]  
             # Remove bars from detection; class 1 
             
             if len(r["scores"]) == 0:
-                info(colorama.Fore.RED + "Skipping image with no detection" + colorama.Fore.RESET)
+                print(colorama.Fore.RED + "Skipping image with no detection" + colorama.Fore.RESET)
                 return
             remove_indices = np.where(r['class_ids'] != 2)
             new_masks = np.delete(r['masks'], remove_indices, axis=2)
@@ -283,7 +280,7 @@ class Detector():
                 file_name = self.fin_path + img_name[:-4] + '.png'
                 skimage.io.imsave(file_name, fin_img)
             except Exception as e:
-                info("ERROR in ESRGAN: Image write. Skipping. image_path=", img_path, e)
+                print("ERROR in ESRGAN: Image write. Skipping. image_path=", img_path, e)
         else:
             # Video capture
             try:
@@ -292,7 +289,7 @@ class Detector():
                 width = int(vcapture.get(CAP_PROP_FRAME_WIDTH))
                 height = int(vcapture.get(CAP_PROP_FRAME_HEIGHT))
                 fps = vcapture.get(CAP_PROP_FPS)
-                info("Detected fps:", fps)
+                print("Detected fps:", fps)
         
                 # Create video in source directory with different name
                 file_name = img_path[:-4] + "_decensored.mp4"
@@ -300,13 +297,13 @@ class Detector():
                                         VideoWriter_fourcc(*'mp4v'),
                                         fps, (width, height))
             except Exception as e:
-                info("ERROR in ESRGAN: video read and init.", e)
+                print("ERROR in ESRGAN: video read and init.", e)
                 return
             count = 0
             success = True
-            info("Video read complete. Starting video phase 2: detection + splice")
+            print("Video read complete. Starting video phase 2: detection + splice")
             while success:
-                info("frame: ", count, "/",vcapture.get(CAP_PROP_FRAME_COUNT))
+                print("frame: ", count, "/",vcapture.get(CAP_PROP_FRAME_COUNT))
                 # Read next image
                 success, image = vcapture.read()
                 if success:
@@ -316,7 +313,7 @@ class Detector():
                     # Detect objects
                     r = self.model.detect([image], verbose=0)[0]
                     if len(r["scores"]) == 0:
-                        info("Skipping frame with no detection")
+                        print("Skipping frame with no detection")
                         # Still need to write image to vwriter
                         image = image[..., ::-1] 
                         vwriter.write(image)
@@ -340,14 +337,14 @@ class Detector():
                     count += 1
 
             vwriter.release()
-            info('Video: Phase 2 complete! Attempting to create a copy with audio included...')
+            print('Video: Phase 2 complete! Attempting to create a copy with audio included...')
             try:
                 in_video = ffmpeg.input(img_path[:-4] + "_decensored.mp4")
                 in_audio = ffmpeg.input(img_path)
                 ffmpeg.concat(in_video, in_audio, v=1, a=1).output(img_path[:-4] + "_decen_audio.mp4", video_bitrate='11M').run()
             except Exception as e:
-                info("ERROR in ESRGAN: audio rip. Ensure ffmpeg.exe is in the main directory.")
-                info(e)
+                print("ERROR in ESRGAN: audio rip. Ensure ffmpeg.exe is in the main directory.")
+                print(e)
 
     # ESRGAN folder running function
     def run_ESRGAN(self, in_path = None, is_video = False, force_jpg = True):
@@ -360,7 +357,7 @@ class Detector():
                 if file.endswith('.png') or file.endswith('.PNG') or file.endswith(".jpg") or file.endswith(".JPG") or file.endswith(".mp4") or file.endswith(".avi"):
                     img_list.append((in_path + '/' + file, file))
             except Exception as e:
-                info("ERROR in run_ESRGAN: File parsing. file=", file, e)
+                print("ERROR in run_ESRGAN: File parsing. file=", file, e)
         # begin ESRGAN on every image. Create esrgan instance too.
         star = time.perf_counter()
         self.esrgan_instance = esrgan.test.esrgan(model_path=self.esr_model_path, hw=self.hardware)
@@ -374,7 +371,7 @@ class Detector():
             self.ESRGAN(img_path=img_path, img_name=img_name, is_video=is_video)
         fin = time.perf_counter()
         total_time = fin-star
-        info("Completed ESRGAN detection and decensor in {:.4f} seconds".format(total_time))
+        print("Completed ESRGAN detection and decensor in {:.4f} seconds".format(total_time))
         self.clean_work_dirs() #NOTE: DISABLE ME if you want to keep the images in the working dirs
 
     def video_create(self, image_path=None, dcp_path=''):
@@ -384,7 +381,7 @@ class Detector():
         for file in os.listdir(str(image_path)):
             file_s = str(file)
             if len(vid_list) == 1:
-                info("WARNING: More than 1 video in input directory! Assuming you want the first video.")
+                print("WARNING: More than 1 video in input directory! Assuming you want the first video.")
                 break
             if file_s.endswith('mp4') or file_s.endswith('MP4'):
                 vid_list.append(image_path + '/' + file_s)
@@ -400,7 +397,7 @@ class Detector():
         file_name = str(file)[:-4] + '_decensored.mp4'
         vwriter = VideoWriter(file_name, VideoWriter_fourcc(*'mp4v'), fps, (width, height))
         count = 0
-        info("Beginning build. Do ensure only relevant images are in source directory")
+        print("Beginning build. Do ensure only relevant images are in source directory")
         input_path = dcp_path + '/decensor_output/'
         img_list = []
 
@@ -408,9 +405,9 @@ class Detector():
             file_s = str(file)
             if file_s.endswith('.png') or file_s.endswith('.PNG'):
                 img_list.append(input_path  + file_s)
-                # info('adding image ', input_path  + file_s)
+                # print('adding image ', input_path  + file_s)
         for img in img_list:
-            info("frame: ", count)
+            print("frame: ", count)
             # Read next image
             image = skimage.io.imread(img) # Should be no alpha channel in created image
             # Add image to video writer, after flipping R and B value
@@ -419,14 +416,14 @@ class Detector():
             count += 1
 
         vwriter.release()
-        info('Video complete! Attempting to create a copy with audio included...')
+        print('Video complete! Attempting to create a copy with audio included...')
         try:
             in_video = ffmpeg.input(file_name)
             in_audio = ffmpeg.input(video_path)
             ffmpeg.concat(in_video, in_audio, v=1, a=1).output(video_path[:-4] + "_decen_audio.mp4", video_bitrate='11M').run()
         except Exception as e:
-            info("ERROR in video_create: audio rip. Ensure ffmpeg.exe is in the main directory.")
-            info(e)
+            print("ERROR in video_create: audio rip. Ensure ffmpeg.exe is in the main directory.")
+            print(e)
     # save path and orig video folder are both paths, but orig video folder is for original mosaics to be saved.
     # fname = filename.
     # image_path = path of input file, image or video
@@ -447,9 +444,9 @@ class Detector():
             vwriter = VideoWriter(file_name, VideoWriter_fourcc(*'mp4v'), fps, (width, height))
             count = 0
             success = True
-            info("Video read complete, starting video detection:")
+            print("Video read complete, starting video detection:")
             while success:
-                info("frame: ", count, "/",vcapture.get(CAP_PROP_FRAME_COUNT))
+                print("frame: ", count, "/",vcapture.get(CAP_PROP_FRAME_COUNT))
                 # Read next image
                 success, image = vcapture.read()
                 if success:
@@ -458,7 +455,7 @@ class Detector():
                     # save frame into decensor input original. Need to keep names persistent.
                     im_name = fname[:-4] # if we get this far, we definitely have a .mp4. Remove that, add count and .png ending
                     file_name = orig_video_folder + im_name + str(count).zfill(6) + '.png' # NOTE Should be adequite for having 10^6 frames, which is more than enough for even 30 mintues total.
-                    # info('saving frame as ', file_name)
+                    # print('saving frame as ', file_name)
                     skimage.io.imsave(file_name, image)
                     
                     # Detect objects
@@ -473,7 +470,7 @@ class Detector():
                     
                     # save covered frame into input for decensoring path
                     file_name = save_path + im_name + str(count).zfill(6) + '.png'
-                    # info('saving covered frame as ', file_name)
+                    # print('saving covered frame as ', file_name)
                     skimage.io.imsave(file_name, cov)
 
                     # RGB -> BGR to save image to video
@@ -483,7 +480,7 @@ class Detector():
                     count += 1
 
             vwriter.release()
-            info('video complete')
+            print('video complete')
         else:
             # Run on Image
             try:
@@ -508,7 +505,7 @@ class Detector():
                 # r = self.model.detect([image_ced], verbose=0)[0]
                 r = self.model.detect([image], verbose=0)[0]
             except Exception as e:
-                info("ERROR in detect_and_cover: Model detection.",e)
+                print("ERROR in detect_and_cover: Model detection.",e)
                 return
             # Remove unwanted class, code from https://github.com/matterport/Mask_RCNN/issues/1666
             if is_mosaic==True or is_video==True:
@@ -517,7 +514,7 @@ class Detector():
                 remove_indices = np.where(r['class_ids'] != 1) # remove mosaic: class 1
             new_masks = np.delete(r['masks'], remove_indices, axis=2)
             # except:
-            #     info("ERROR in detect_and_cover: Model detect")
+            #     print("ERROR in detect_and_cover: Model detect")
             
             cov, mask = self.apply_cover(image, new_masks, dilation)
             try:
@@ -526,7 +523,7 @@ class Detector():
                 skimage.io.imsave(file_name, cov)
             except:
                 log(f"ERROR in detect_and_cover: Image write. Skipping. {image_path}", Ansi.RED)
-            # info("Saved to ", file_name)
+            # print("Saved to ", file_name)
 
     # Function for file parsing, calls the aboven detect_and_cover
     def run_on_folder(self, input_folder, output_folder, is_video=False, orig_video_folder=None, is_mosaic=False, dilation=0):
@@ -536,7 +533,7 @@ class Detector():
         self.esrgan_instance = [] # rare case where esrgan instance not destroyed but new action started, catch it here
         self.load_weights()
         if dilation < 0:
-            info("ERROR: dilation value < 0")
+            print("ERROR: dilation value < 0")
             return
         log("Will expand each mask by {} pixels".format(dilation/2), Ansi.WHITE)
 
@@ -555,7 +552,7 @@ class Detector():
                 self.detect_and_cover(vid_path, vid_name, output_folder, is_video=True, orig_video_folder=orig_video_folder, dilation=dilation)
                 fin = time.perf_counter()
                 total_time = fin-star
-                info('Detection on video', file_counter, 'finished in {:.4f} seconds'.format(total_time))
+                print('Detection on video', file_counter, 'finished in {:.4f} seconds'.format(total_time))
                 file_counter += 1
         else:
             # obtain inputs from the input folder
@@ -566,7 +563,7 @@ class Detector():
                     if file_s.endswith('.png') or file_s.endswith('.PNG') or file_s.endswith(".jpg") or file_s.endswith(".JPG"):
                         img_list.append((input_folder + '/' + file_s, file_s))
                 except:
-                    info("ERROR in run_on_folder: File parsing. file=", file_s)
+                    print("ERROR in run_on_folder: File parsing. file=", file_s)
             
 
             # save run detection with outputs to output folder
@@ -576,7 +573,7 @@ class Detector():
                 self.detect_and_cover(img_path, img_name, output_folder, is_mosaic=is_mosaic, dilation=dilation)  #sending force_jpg for debugging
                 fin = time.perf_counter()
                 total_time = fin-star
-                info(colorama.Fore.CYAN + 'Detection on image' + colorama.Fore.RESET, file_counter,'of', len(img_list), 'finished in ' + colorama.Fore.YELLOW + '{:.4f}'.format(total_time) + colorama.Fore.RESET + ' seconds')
+                print(colorama.Fore.CYAN + 'Detection on image' + colorama.Fore.RESET, file_counter,'of', len(img_list), 'finished in ' + colorama.Fore.YELLOW + '{:.4f}'.format(total_time) + colorama.Fore.RESET + ' seconds')
                 file_counter += 1
             log("--------------------------------------------------------------------------", Ansi.GRAY)
 
